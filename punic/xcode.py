@@ -106,13 +106,13 @@ class Xcode(object):
 ########################################################################################################################
 
 class XcodeProject(object):
-    def __init__(self, punic, xcode, path, identifier):
-        assert punic
+    def __init__(self, checkout, xcode, path, identifier):
+        assert checkout
         assert xcode
         assert path
         assert identifier
 
-        self.punic = punic
+        self.checkout = checkout
         self.xcode = xcode
         self.path = path
         self.identifier = identifier
@@ -132,6 +132,10 @@ class XcodeProject(object):
     @property
     def scheme_names(self):
         return self.info[2]
+
+    @property
+    def punic(self):
+        return self.checkout.punic
 
     @mproperty
     def schemes(self):
@@ -156,13 +160,20 @@ class XcodeProject(object):
         return _parse_build_settings(output)
 
     def build(self, arguments):
-        # type: (XcodeBuildArguments) -> dict()
+        # type: (XcodeBuildArguments) -> list()
         try:
             self.check_call(subcommand='build', arguments=arguments)
         except CalledProcessError as e:
             logging.error('<err>Error</err>: Failed to build - result code <echo>{}</echo>'.format(e.returncode))
-            logging.error('Command: <echo>{}</echo>'.format(e.cmd))
-            logging.error(e.output)
+            logging.error('Command: <echo>{}</echo>'.format(' '.join(e.cmd)))
+
+            project_name = self.checkout.punic.config.root_path.name
+
+            log_path = self.checkout.config.build_log_directory / "{}.log".format(project_name)
+            logging.error('xcodebuild log written to <ref>{}</ref>'.format(log_path))
+            log_path.open("w").write(e.output)
+
+            #logging.error(e.output)
             exit(e.returncode)
 
         build_settings = self.build_settings(arguments=arguments)

@@ -34,6 +34,10 @@ class Config(object):
         self.build_path = self.punic_path / 'Build'
         self.checkouts_path = self.punic_path / 'Checkouts'
 
+        self.build_log_directory = Path('~/Library/Logs/Punic/Builds').expanduser()
+        if not self.build_log_directory.exists():
+            self.build_log_directory.mkdir(parents=True)
+
         self.derived_data_path = self.library_directory / "DerivedData"
 
         self.platforms = Platform.all
