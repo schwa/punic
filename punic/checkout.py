@@ -29,7 +29,7 @@ class Checkout(object):
 
             result = runner.run('git submodule status "{}"'.format(relative_checkout_path))
             if result.return_code == 0:
-                match = re.match(r'^(?P<flag> |\-|\+|U)(?P<sha>[a-f0-9]+) (?P<path>.+)( \((?P<description>.+)\))?', result.stdout)
+                match = re.match(r'^(?P<flag> |-|\+|U)(?P<sha>[a-f0-9]+) (?P<path>.+)( \((?P<description>.+)\))?', result.stdout)
                 flag = match.groupdict()['flag']
                 if flag == ' ':
                     pass
