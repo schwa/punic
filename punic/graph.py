@@ -27,7 +27,7 @@ def make_graph(punic, open):
                     click.launch('graph.png')
             else:
                 logging.warning('graphviz not installed. Cannot convert graph to a png.')
-    except ImportError as e:
+    except ImportError:
         pip = 'pip' if sys.version_info.major < 3 else 'pip3'
         steps = ['brew install graphviz', '{} install pydotplus'.format(pip)]
         lines = ['To enable graph generation please do the following:'] + ['\t' + step for step in steps]

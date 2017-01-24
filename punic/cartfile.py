@@ -31,6 +31,8 @@ class Cartfile(object):
                 raise CartfileNotFound(path=source)
             source = source.open().read()
 
+        lines = None
+
         if isinstance(source, six.string_types):
             lines = [line.rstrip() for line in source.splitlines()]
 

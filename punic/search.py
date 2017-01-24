@@ -53,9 +53,8 @@ def github_search(punic, name, cartfile_append = True, language='swift'):
         # Get rid of no license.
         repositories = [repo for repo in repositories if repo.license]
 
-        repository = menu('?', repositories, formatter)
+        repository = menu('?', repositories, formatter)[0]
 
-        repository = repositories[0]
         append_to_cartfile(punic, repository)
 
 def append_to_cartfile(punic, repository):

@@ -49,7 +49,7 @@ class SemanticVersion(object):
         """
         # TODO: using a tuple breaks code
         #        return (self.major, self.minor, self.patch)
-        return ([self.major, self.minor, self.patch], self.identifiers)
+        return [self.major, self.minor, self.patch], self.identifiers
 
     def __repr__(self):
         components = [self.major, self.minor] + ([self.patch] if self.patch else [])

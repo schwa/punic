@@ -69,7 +69,7 @@ class Repository(object):
         output = runner.check_run('git tag', cwd=self.path)
         tags = [tag for tag in output.split('\n') if tag]
 
-        if config.verbose == True:
+        if config.verbose:
             bad_tags = [tag for tag in tags if not SemanticVersion.is_semantic(tag)]
             if bad_tags:
                 logging.warning("<err>Warning</err>: Found tags in \'{}\' that are not semantic: {}".format(self, ', '.join(['\'{}\''.format(tag) for tag in bad_tags])))

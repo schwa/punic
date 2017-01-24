@@ -63,7 +63,7 @@ class Resolver(object):
 
         if self.export_diagnostics:
             def default(obj):
-                if isinstance(obj, (Node)):
+                if isinstance(obj, Node):
                     return str(obj)
                 else:
                     raise Exception("Unknown type: {}".format(type(obj)))

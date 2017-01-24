@@ -36,9 +36,9 @@ class GitHub(object):
         try:
             github_user = unicode(subprocess.check_output(shlex.split('git config --get github.user')).strip(), 'utf-8')
             github_token = unicode(subprocess.check_output(shlex.split('git config --get github.token')).strip(), 'utf-8')
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             return None
-        return (github_user, github_token)
+        return github_user, github_token
 
     def search(self, name, language = 'swift'):
         q = '{} language:{} in:name fork:false'.format(name, language)

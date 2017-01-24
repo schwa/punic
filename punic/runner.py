@@ -36,10 +36,9 @@ class Runner(object):
                 logging.info("Resetting cache and trying again...")
                 self.cache_path.unlink()
                 shelf = shelve.open(str(self.cache_path))
-                return self
+                return shelf
             else:
                 raise
-        return shelf
 
     def reset(self):
         if self.cache_path.exists():

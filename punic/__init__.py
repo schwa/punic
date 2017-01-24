@@ -33,10 +33,11 @@ class Punic(object):
         if not current_session:
             current_session = self
 
-        if not root_path:
-            root_path = Path.cwd()
 
         self.config = config
+
+        if root_path:
+            self.config.root_path = root_path
 
         root_project_identifier = ProjectIdentifier(overrides=None, project_name=self.config.root_path.name)
 
