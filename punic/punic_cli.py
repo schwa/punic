@@ -105,6 +105,7 @@ def fetch(context, **kwargs):
 @click.option('--fetch/--no-fetch', default=True, is_flag=True, help="""Controls whether to fetch dependencies.""")
 @click.option('--use-submodules', default=None, help="""Add dependencies as Git submodules""")
 @click.option('--use-ssh', default=None, is_flag=True, help="""Use SSH for downloading GitHub repositories""")
+@click.option('--export-diagnostics', default=False, is_flag=True, help="""Export a diagnostic file to help with bug reporting""")
 def resolve(context, **kwargs):
     """Resolve dependencies and output `Carthage.resolved` file.
 
@@ -114,9 +115,11 @@ def resolve(context, **kwargs):
     logging.info("<cmd>Resolve</cmd>")
     punic.config.update(**kwargs)
 
+    print(kwargs.keys())
+
     with timeit('resolve'):
         with error_handling():
-            punic.resolve()
+            punic.resolve(export_diagnostics = kwargs['export_diagnostics'])
 
 
 @punic_cli.command()

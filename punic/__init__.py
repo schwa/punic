@@ -44,17 +44,17 @@ class Punic(object):
 
         self.root_project = self._repository_for_identifier(root_project_identifier)
 
-    def _resolver(self):
-        return Resolver(root=Node(self.root_project.identifier, None), dependencies_for_node=self._dependencies_for_node)
+    def _resolver(self, export_diagnostics = False):
+        return Resolver(root=Node(self.root_project.identifier, None), dependencies_for_node=self._dependencies_for_node, export_diagnostics = export_diagnostics)
 
     def _dependencies_for_node(self, node):
         assert not node.version or isinstance(node.version, Revision)
         dependencies = self.dependencies_for_project_and_tag(identifier=node.identifier, tag=node.version)
         return dependencies
 
-    def resolve(self):
+    def resolve(self, export_diagnostics = False):
         # type: (bool)
-        resolver = self._resolver()
+        resolver = self._resolver(export_diagnostics = export_diagnostics)
         build_order = resolver.resolve_build_order()
 
         for index, node in enumerate(build_order[:-1]):

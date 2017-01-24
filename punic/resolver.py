@@ -5,6 +5,10 @@ __all__ = ['Resolver', 'Node']
 from collections import (defaultdict, namedtuple)
 from networkx import (DiGraph, dfs_preorder_nodes, topological_sort, number_of_nodes, number_of_edges)
 import logging
+from networkx.readwrite import json_graph
+import json
+import punic
+from .utilities import reveal
 from .repository import *
 
 class Node:
@@ -27,9 +31,10 @@ class Node:
 
 
 class Resolver(object):
-    def __init__(self, root, dependencies_for_node):
+    def __init__(self, root, dependencies_for_node, export_diagnostics = False):
         self.root = root
         self.dependencies_for_node = dependencies_for_node
+        self.export_diagnostics = export_diagnostics
 
     def build_graph(self, dependency_filter=None):
         def populate_graph(graph, parent, depth=0):
@@ -56,6 +61,23 @@ class Resolver(object):
         # Build a graph up of _all_ version of _all_ dependencies
         graph = self.build_graph()
         logging.debug('Input universal graph has {} nodes, {} edges.'.format(number_of_nodes(graph), number_of_edges(graph)))
+
+        ################################################################################################################
+
+        if self.export_diagnostics:
+            def default(obj):
+                if isinstance(obj, (Node)):
+                    return str(obj)
+                else:
+                    raise Exception("Unknown type: {}".format(type(obj)))
+            # https://networkx.github.io/documentation/networkx-1.10/reference/readwrite.json_graph.html
+            j = json_graph.node_link_data(graph, dict(id='id', source='source.id', target='target.id', key='key'))
+
+
+            path = (punic.current_session.config.library_directory / "test.json")
+            json.dump(j, path.open("wb"), indent=4, default=default)
+
+            reveal(path)
 
         ################################################################################################################
 
