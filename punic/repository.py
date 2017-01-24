@@ -94,7 +94,7 @@ class Repository(object):
         raise Exception('{}: \'{}\' failed with {}'.format(self, command, result))
 
     def checkout(self, revision):
-        # type: (Revision)
+        # type: (Revision) -> None
         logging.debug('Checking out <ref>{}</ref> @ revision <rev>{}</rev>'.format(self, revision))
         self.check_work_directory()
         try:

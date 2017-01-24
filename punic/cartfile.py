@@ -45,7 +45,7 @@ class Cartfile(object):
         return self.specifications
 
     def write(self, destination):
-        # type: (File)
+        # type: (File) -> None
         strings = [str(specification) for specification in self.specifications]
         string = u'\n'.join(sorted(strings)) + '\n'
         destination.write(string)

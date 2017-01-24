@@ -148,7 +148,7 @@ class Resolver(object):
         return build_order
 
     def resolve_versions(self, dependencies):
-        # type: [(ProjectIdentifier, Revision)] -> [ProjectIdentifier, Tag]
+        # type: ([Node]) -> [Node]
         """Given an array of project identifier/version pairs work out the build order"""
 
         graph = DiGraph()

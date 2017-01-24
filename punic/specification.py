@@ -21,14 +21,14 @@ elif six.PY3:
 
 class Specification(object):
     def __init__(self, identifier, predicate = None):
-        # type: (str, VersionPredicate)
+        # type: (str, VersionPredicate) -> None
         self.identifier = identifier
         self.predicate = predicate
         self.raw_string = None
 
     @classmethod
     def cartfile_string(cls, string, use_ssh=False, overrides=None):
-        # type: (str) -> Specification
+        # type: (str, bool, dict) -> Specification
         """
         >>> Specification.cartfile_string('github "foo/bar"')
         github "foo/bar"
@@ -73,7 +73,7 @@ class Specification(object):
 class ProjectIdentifier(object):
     @classmethod
     def string(cls, string, use_ssh=False, overrides=None):
-        # type: (str) -> ProjectIdentifier
+        # type: (str, bool, dict) -> ProjectIdentifier
         """
         >>> ProjectIdentifier.string('github "foo/bar"')
         foo/bar

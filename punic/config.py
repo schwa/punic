@@ -106,7 +106,7 @@ class Config(object):
         self.xcode = xcode
 
     def read(self, path):
-        # type: (Path)
+        # type: (Path) -> None
 
         d = yaml.safe_load(path.open())
         if not d:

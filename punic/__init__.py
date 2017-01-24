@@ -53,7 +53,7 @@ class Punic(object):
         return dependencies
 
     def resolve(self, export_diagnostics = False):
-        # type: (bool)
+        # type: (bool) -> None
         resolver = self._resolver(export_diagnostics = export_diagnostics)
         build_order = resolver.resolve_build_order()
 
@@ -87,7 +87,7 @@ class Punic(object):
 
 
     def build(self, dependencies):
-        # type: ([str])
+        # type: ([str]) -> None
 
         logging.info('Using xcode version: {}'.format(self.config.xcode))
 
@@ -221,7 +221,7 @@ class Punic(object):
         self._post_process(platform, all_products)
 
     def _post_process(self, platform, products):
-        # type: (punic.platform.Platform, List)
+        # type: (punic.platform.Platform, List) -> None
 
         ########################################################################################################
 

@@ -12,7 +12,7 @@ from pathlib2 import Path
 
 @contextlib.contextmanager
 def work_directory(path):
-    # type: (Union[Path, None])
+    # type: (Union[Path, None]) -> None
     saved_wd = None
     if path:
         path = str(path)
@@ -29,7 +29,7 @@ def work_directory(path):
 
 @contextlib.contextmanager
 def timeit(task=None, log=None):
-    # type: (Union[str, None])
+    # type: (Union[str, None], Union[bool, None]) -> None
     if log is None:
         log = punic.current_session.config.log_timings
     start = time.time()
@@ -40,6 +40,6 @@ def timeit(task=None, log=None):
 
 
 def reveal(path):
-    #type: (Path)
+    #type: (Path) -> None
     subprocess.check_call(['open', str(path.parent)])
 

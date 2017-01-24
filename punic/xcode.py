@@ -127,12 +127,12 @@ class XcodeProject(object):
         return targets, configurations, schemes, default_configuration
 
     def build_settings(self, arguments):
-        # type: (XcodeBuildArguments) -> dict()
+        # type: (XcodeBuildArguments) -> dict
         output = self.check_call(subcommand='-showBuildSettings', arguments=arguments, cache_key=self.identifier)
         return _parse_build_settings(output)
 
     def build(self, arguments):
-        # type: (XcodeBuildArguments) -> dict()
+        # type: (XcodeBuildArguments) -> dict
         try:
             self.check_call(subcommand='build', arguments=arguments)
         except CalledProcessError as e:
@@ -151,7 +151,7 @@ class XcodeProject(object):
         return products
 
     def check_call(self, subcommand, arguments=None, **kwargs):
-        # type: (str, XcodeBuildArguments) -> [str]
+        # TODO: type: (str, XcodeBuildArguments, list) -> [str]
         assert not arguments or isinstance(arguments, XcodeBuildArguments)
         arguments = arguments.to_list() if arguments else []
         command = ['xcodebuild', '-project' if self.path.suffix =='.xcodeproj' else '-workspace', self.path] + arguments + [subcommand]
