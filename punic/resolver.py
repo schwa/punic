@@ -13,21 +13,18 @@ from .repository import *
 
 class Node:
     def __init__(self, identifier, version):
+        # type: (str, str) -> None
         self.identifier = identifier
         self.version = version
+
     def __repr__(self):
         return "{}@{}".format(self.identifier, self.version)
-    def items(self):
-        return self.identifier, self.version
 
     def __hash__(self):
         return hash(self.identifier) ^ hash(self.version)
 
     def __eq__(self, other):
         return self.identifier == other.identifier and self.version == other.version
-
-
-#Node = namedtuple("Node", "identifier version")
 
 
 class Resolver(object):
@@ -144,14 +141,14 @@ class Resolver(object):
         return graph
 
     def resolve_build_order(self):
-        # type: () -> [(ProjectIdentifier, Revision)]
+        # type: () -> [Node]
         graph = self.resolve()
         logging.debug('<sub>Topologically sorting graph</sub>')
         build_order = topological_sort(graph, reverse=True)
         return build_order
 
     def resolve_versions(self, dependencies):
-        # type: (ProjectIdentifier, Revision) -> [ProjectIdentifier, Tag]
+        # type: [(ProjectIdentifier, Revision)] -> [ProjectIdentifier, Tag]
         """Given an array of project identifier/version pairs work out the build order"""
 
         graph = DiGraph()
