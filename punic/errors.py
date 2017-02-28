@@ -16,6 +16,9 @@ class PunicRepresentableError(Exception):
     pass
 
 
+class InvalidCarthageSpecification(Exception):
+    pass
+
 class NoSuchRevision(Exception):
     def __init__(self, repository, revision):
         self.repository = repository

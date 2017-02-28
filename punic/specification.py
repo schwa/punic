@@ -10,6 +10,7 @@ from memoize import mproperty
 from pathlib2 import Path
 import logging
 
+from .errors import *
 from .semantic_version import *
 
 # Ideally we could six.urllib but this causes problem with nosetests!
@@ -119,7 +120,7 @@ class ProjectIdentifier(object):
             project_name = path.stem
             remote_url = link
         else:
-            raise Exception('No match')
+            raise InvalidCarthageSpecification('No match: {}'.format())
 
         return ProjectIdentifier(source=source, remote_url=remote_url, team_name=team_name, project_name=project_name,
             overrides=overrides)
