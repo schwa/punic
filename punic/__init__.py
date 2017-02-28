@@ -38,7 +38,7 @@ class Punic(object):
         if root_path:
             self.config.root_path = root_path
 
-        root_project_identifier = ProjectIdentifier(overrides=None, project_name=self.config.root_path.name)
+        root_project_identifier = ProjectIdentifier(overrides=None, source="root", link=self.config.root_path, project_name=self.config.root_path.name)
 
         self.root_project = Repository(identifier=root_project_identifier, repo_path=self.config.root_path,
                                        is_root_project=True)
@@ -60,7 +60,7 @@ class Punic(object):
 
         for index, node in enumerate(build_order[:-1]):
             dependency, version = node.identifier, node.version
-            logging.debug('{} <ref>{}</ref> <rev>{}</rev> <ref>{}</ref>'.format(index + 1, dependency, version.revision if version else '', dependency.remote_url))
+            logging.debug('{} <ref>{}</ref> <rev>{}</rev> <ref>{}</ref>'.format(index + 1, dependency, version.revision if version else '', dependency.link))
 
         specifications = [Specification(identifier=node.identifier, predicate=VersionPredicate('"{}"'.format(node.version.revision))) for node in build_order[:-1]]
         logging.debug("<sub>Saving</sub> <ref>Cartfile.resolved</ref>")

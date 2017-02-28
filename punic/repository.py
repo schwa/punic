@@ -32,7 +32,7 @@ class Repository(object):
         if repo_path:
             self.path = repo_path
         else:
-            remote_url = self.identifier.remote_url.encode("utf-8")
+            remote_url = self.identifier.link.encode("utf-8")
             url_hash = hashlib.md5(remote_url).hexdigest()
             self.path = config.repo_cache_directory / "{}_{}".format(self.identifier.project_name, url_hash)
 
@@ -106,7 +106,7 @@ class Repository(object):
         if not self.path.exists():
             logging.debug('<sub>Cloning</sub>: <ref>{}</ref>'.format(self))
 
-            url = self.identifier.remote_url
+            url = self.identifier.link
 
             parsed_url = urlparse.urlparse(url)
             if parsed_url.scheme == 'file':
@@ -114,7 +114,7 @@ class Repository(object):
             else:
                 repo = url
 
-            runner.check_run('git clone --recursive --recurse-submodules "{}" "{}"'.format(repo, str(self.path)), cwd=self.path.parent)
+            runner.check_run('git clone --recursive --recurse-submodules "{}" "{}"'.format(repo, self.path), cwd=self.path.parent)
         else:
             self.check_work_directory()
 

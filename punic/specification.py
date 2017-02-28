@@ -110,26 +110,20 @@ class ProjectIdentifier(object):
             project_name = match.group('project_name')
 
             if not use_ssh:
-                remote_url = 'https://github.com/{}/{}.git'.format(team_name, project_name)
+                link = 'https://github.com/{}/{}.git'.format(team_name, project_name)
             else:
-                remote_url = 'git@github.com:{}/{}.git'.format(team_name, project_name)
+                link = 'git@github.com:{}/{}.git'.format(team_name, project_name)
         elif source == 'git':
-            team_name = None
-            url_parts = urlparse.urlparse(link)
-            path = Path(url_parts.path)
-            project_name = path.stem
-            remote_url = link
+            project_name = Path(urlparse.urlparse(link).path).stem
         else:
             raise InvalidCarthageSpecification('No match: {}'.format())
 
-        return ProjectIdentifier(source=source, remote_url=remote_url, team_name=team_name, project_name=project_name,
-            overrides=overrides)
+        return ProjectIdentifier(source=source, link=link, project_name=project_name, overrides=overrides)
 
-    def __init__(self, source=None, team_name=None, project_name=None, remote_url=None, overrides=None):
+    def __init__(self, source, link, project_name, overrides=None):
         self.source = source
-        self.team_name = team_name
+        self.link = link
         self.project_name = project_name
-        self.remote_url = remote_url
         if overrides and self.project_name in overrides:
             override_url = overrides[self.project_name]
 
@@ -139,17 +133,15 @@ class ProjectIdentifier(object):
     @mproperty
     def full_identifier(self):
         if self.source == 'git':
-            return '{} "{}"'.format(self.source, self.remote_url)
+            return '{} "{}"'.format(self.source, self.link)
         elif self.source == 'github':
-            return '{} "{}/{}"'.format(self.source, self.team_name, self.project_name)
+            return '{} "{}"'.format(self.source, self.link)
         else:
             raise Exception("Unknown source")
 
     @mproperty
     def identifier(self):
-        components = [] \
-                     + ([self.team_name] if self.team_name else []) \
-                     + [self.project_name]
+        components = [self.source, str(self.link)]
         return '/'.join(components)
 
     def __repr__(self):
