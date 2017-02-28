@@ -1,5 +1,5 @@
 prompt_toolkit
-yaml
+pyyaml
 affirm>=0.9.2
 blessings>=1.6
 boto>=2.42.0
