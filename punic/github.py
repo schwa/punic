@@ -47,11 +47,11 @@ class GitHub(object):
         r = requests.get('https://api.github.com/search/repositories?q={}&sort=stars'.format(q), auth = self.auth, headers = headers)
         items = r.json()['items']
 
-        repositories = [Repository(github=self, json=item) for item in items]
+        repositories = [GithubRepository(github=self, json=item) for item in items]
 
         return repositories
 
-class Repository(object):
+class GithubRepository(object):
 
     def __init__(self, github, json):
         self.github = github
