@@ -189,7 +189,7 @@ class Identifier(object):
             value = value.string_value
 
         self.string_value = value
-        self.int_value = int(value) if RepresentsInt(value) else None
+        self.int_value = int(value) if represents_int(value) else None
 
 
     def __repr__(self):
@@ -215,5 +215,5 @@ class Identifier(object):
         return hash(self.string_value)
 
 INT_RE = re.compile(r"^[-]?\d+$")
-def RepresentsInt(s):
+def represents_int(s):
     return INT_RE.match(str(s)) is not None
