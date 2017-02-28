@@ -82,13 +82,11 @@ class Xcode(object):
 ########################################################################################################################
 
 class XcodeProject(object):
-    def __init__(self, punic, xcode, path, identifier):
-        assert punic
+    def __init__(self, xcode, path, identifier):
         assert xcode
         assert path
         assert identifier
 
-        self.punic = punic
         self.xcode = xcode
         self.path = path
         self.identifier = identifier

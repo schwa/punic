@@ -27,8 +27,7 @@ from .errors import NoSuchRevision
 
 
 class Repository(object):
-    def __init__(self, punic, identifier, repo_path=None):
-        self.punic = punic
+    def __init__(self, identifier, repo_path=None, is_root_project=False):
         self.identifier = identifier
         if repo_path:
             self.path = repo_path
@@ -38,6 +37,8 @@ class Repository(object):
             self.path = config.repo_cache_directory / "{}_{}".format(self.identifier.project_name, url_hash)
 
         self.specifications_cache = dict()
+
+        self.is_root_project = is_root_project
 
     def __repr__(self):
         return str(self.identifier)
@@ -130,7 +131,7 @@ class Repository(object):
 
         if revision in self.specifications_cache:
             return self.specifications_cache[revision]
-        elif revision is None and self == self.punic.root_project:
+        elif revision is None and self.is_root_project:
             cartfile = Cartfile(use_ssh=config.use_ssh, overrides=config.repo_overrides)
             specifications = []
 

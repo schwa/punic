@@ -33,7 +33,6 @@ class Punic(object):
         if not current_session:
             current_session = self
 
-
         self.config = config
 
         if root_path:
@@ -41,9 +40,10 @@ class Punic(object):
 
         root_project_identifier = ProjectIdentifier(overrides=None, project_name=self.config.root_path.name)
 
-        self.all_source_providers = {root_project_identifier: Repository(punic=self, identifier=root_project_identifier, repo_path=self.config.root_path), }
+        self.root_project = Repository(identifier=root_project_identifier, repo_path=self.config.root_path,
+                                       is_root_project=True)
 
-        self.root_project = self._source_provider_for_identifier(root_project_identifier)
+        self.all_source_providers = {root_project_identifier: self.root_project, }
 
     def _resolver(self, export_diagnostics = False):
         return Resolver(root=Node(self.root_project.identifier, None), dependencies_for_node=self._dependencies_for_node, export_diagnostics = export_diagnostics)
@@ -74,17 +74,18 @@ class Punic(object):
 
     # TODO: This can be deprecated and the fetch flag relied on instead
     def fetch(self, dependencies=None):
-
         configuration, platforms = self.config.configuration, self.config.platforms
-
         if not self.config.build_path.exists():
             self.config.build_path.mkdir(parents=True)
-
         filtered_dependencies = self._ordered_dependencies(name_filter=dependencies)
-
-        checkouts = [Checkout(punic=self, identifier=identifier, revision=revision) for identifier, revision in filtered_dependencies]
+        checkouts = [self.make_checkout(identifier=dependency.identifier, revision=dependency.version) for dependency in filtered_dependencies]
         for checkout in checkouts:
             checkout.prepare()
+
+
+    def make_checkout(self, identifier, revision):
+        has_dependencies = len(self.dependencies_for_project_and_tag(identifier, revision)) > 0
+        return Checkout(punic=self, identifier=identifier, revision=revision, has_dependencies=has_dependencies)
 
 
     def build(self, dependencies):
@@ -99,7 +100,7 @@ class Punic(object):
 
         filtered_dependencies = self._ordered_dependencies(name_filter=dependencies)
 
-        checkouts = [Checkout(punic=self, identifier=node.identifier, revision=node.version) for node in filtered_dependencies]
+        checkouts = [self.make_checkout(identifier=node.identifier, revision=node.version) for node in filtered_dependencies]
 
         skips = self.config.skips
 
@@ -161,7 +162,7 @@ class Punic(object):
         if identifier in self.all_source_providers:
             return self.all_source_providers[identifier]
         else:
-            repository = Repository(self, identifier=identifier)
+            repository = Repository(identifier=identifier)
             if self.config.fetch:
                 repository.fetch()
             self.all_source_providers[identifier] = repository

@@ -11,12 +11,13 @@ from punic.xcode import XcodeProject
 
 class Checkout(object):
 
-    def __init__(self, punic, identifier, revision):
-        self.punic = punic
+    def __init__(self, punic, identifier, revision, has_dependencies):
         self.identifier = identifier
-        self.repository = self.punic._source_provider_for_identifier(self.identifier)
+        self.repository = punic._source_provider_for_identifier(self.identifier)
         self.revision = revision
         self.checkout_path = config.checkouts_path / self.identifier.project_name
+
+        self.has_dependencies = has_dependencies
 
     def prepare(self):
 
@@ -61,7 +62,7 @@ class Checkout(object):
             raise Exception('No checkout at path: {}'.format(self.checkout_path))
 
         # We only need to bother making a symlink to <root>/Carthage/Build if dependency also has dependencies.
-        if len(self.punic.dependencies_for_project_and_tag(self.identifier, self.revision)):
+        if self.has_dependencies:
             # Make a Carthage/Build symlink inside checked out project.
             carthage_path = self.checkout_path / 'Carthage'
             if not carthage_path.exists():
@@ -103,7 +104,7 @@ class Checkout(object):
             if embedded_project_pattern .search(str(project_path)):
                 #print('Skipping project\'s embedded workspace:', project_path)
                 continue
-            project = XcodeProject(self, config.xcode, project_path, _make_cache_identifier(project_path))
+            project = XcodeProject(config.xcode, project_path, _make_cache_identifier(project_path))
             for scheme in list(project.scheme_names):
                 if scheme in schemes:
                     project.info[2].remove(scheme)

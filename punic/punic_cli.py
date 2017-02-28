@@ -282,7 +282,8 @@ def list(context, **kwargs):
 
     filtered_dependencies = punic._ordered_dependencies(name_filter=deps)
 
-    checkouts = [Checkout(punic=punic, identifier=node.identifier, revision=node.version) for node in filtered_dependencies]
+
+    checkouts = [punic.make_checkout(identifier=node.identifier, revision=node.version) for node in filtered_dependencies]
 
     tree = {}
 
