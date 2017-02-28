@@ -88,7 +88,7 @@ class Repository(object):
         result = runner.run(command, echo=False, cwd=self.path)
         if result.return_code == 0:
             return result.stdout.strip()
-        raise Exception('{}: \'{}\' failed with {}'.format(self, command, result))
+        raise GenericPunicException('{}: \'{}\' failed with {}'.format(self, command, result))
 
     def checkout(self, revision):
         # type: (Revision) -> None
@@ -96,7 +96,7 @@ class Repository(object):
         self.check_work_directory()
         try:
             runner.check_run('git checkout "{}"'.format(revision.sha), cwd=self.path)
-        except Exception:
+        except CalledProcessError:
             raise NoSuchRevision(repository=self, revision=revision)
 
         runner.check_run('git submodule update --init --recursive', cwd=self.path)
@@ -245,7 +245,7 @@ class Revision(object):
             if result.return_code == 1:
                 return True
             else:
-                raise Exception('git merge-base returned {} {} {} {} {}'.format(result.return_code, result.stderr, self.repository, other.sha, self.sha))
+                raise GenericPunicException('git merge-base returned {} {} {} {} {}'.format(result.return_code, result.stderr, self.repository, other.sha, self.sha))
 
     def __hash__(self):
         # TODO: Should include repo too?

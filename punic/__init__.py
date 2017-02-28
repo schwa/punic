@@ -19,6 +19,7 @@ from .specification import ProjectIdentifier, Specification, VersionPredicate, V
 from .xcode import XcodeBuildArguments
 import punic.shshutil as shutil
 from .errors import NoSuchRevision
+from .source_provider import *
 
 current_session = None
 
@@ -46,7 +47,7 @@ class Punic(object):
         self.all_source_providers = {root_project_identifier: self.root_project, }
 
     def _resolver(self, export_diagnostics = False):
-        return Resolver(root=Node(self.root_project.identifier, None), dependencies_for_node=self._dependencies_for_node, export_diagnostics = export_diagnostics)
+        return Resolver(punic = self, root=Node(self.root_project.identifier, None), dependencies_for_node=self._dependencies_for_node, export_diagnostics = export_diagnostics)
 
     def _dependencies_for_node(self, node):
         assert not node.version or isinstance(node.version, Revision)
@@ -140,17 +141,19 @@ class Punic(object):
         cartfile.read(self.config.root_path / 'Cartfile.resolved')
 
         def _predicate_to_revision(spec):
-            repository = self._source_provider_for_identifier(spec.identifier)
+            source_provider = self._source_provider_for_identifier(spec.identifier)
+            repository = source_provider._repository
             if spec.predicate.operator == VersionOperator.commitish:
                 try:
-                    revision = Revision(repository=repository, revision=spec.predicate.value, revision_type=Revision.Type.commitish, check = True)
-                except Exception as e:
+                    return Revision(repository=repository, revision=spec.predicate.value, revision_type=Revision.Type.commitish, check = True)
+                except NoSuchRevision as e:
                     logging.warning(e.message)
                     return None
-                else:
-                    return revision
+                except:
+                    raise
             else:
-                raise Exception("Cannot convert spec to revision: {}".format(spec))
+                raise GenericPunicException("Cannot convert spec to revision: {}".format(spec))
+
 
         dependencies = [(spec.identifier, _predicate_to_revision(spec)) for spec in cartfile.specifications]
         resolved_dependencies = self._resolver().resolve_versions(dependencies)
@@ -162,11 +165,11 @@ class Punic(object):
         if identifier in self.all_source_providers:
             return self.all_source_providers[identifier]
         else:
-            repository = Repository(identifier=identifier)
+            source_provider = SourceProvider.source_provider_with_identifier(identifier=identifier)
             if self.config.fetch:
-                repository.fetch()
-            self.all_source_providers[identifier] = repository
-            return repository
+                source_provider.fetch()
+            self.all_source_providers[identifier] = source_provider
+            return source_provider
 
     def dependencies_for_project_and_tag(self, identifier, tag):
         # type: (ProjectIdentifier, Revision) -> [ProjectIdentifier, [Revision]]
@@ -174,22 +177,22 @@ class Punic(object):
         assert isinstance(identifier, ProjectIdentifier)
         assert not tag or isinstance(tag, Revision)
 
-        repository = self._source_provider_for_identifier(identifier)
-        specifications = repository.specifications_for_revision(tag)
+        source_provider = self._source_provider_for_identifier(identifier)
+        specifications = source_provider.specifications_for_revision(tag)
 
         def make(specification):
-            repository = self._source_provider_for_identifier(specification.identifier)
-            tags = repository.revisions_for_predicate(specification.predicate)
+            source_provider = self._source_provider_for_identifier(specification.identifier)
+            tags = source_provider.revisions_for_predicate(specification.predicate)
             if specification.predicate.operator == VersionOperator.commitish:
                 try:
-                    revision = Revision(repository=repository, revision=specification.predicate.value, revision_type=Revision.Type.commitish, check = True)
+                    revision = Revision(repository=source_provider._repository, revision=specification.predicate.value, revision_type=Revision.Type.commitish, check = True)
                 except NoSuchRevision as e:
                     logging.warning("<err>Warning</err>: {}".format(e.message))
                     return None
                 tags.append(revision)
                 tags.sort()
             assert len(tags)
-            return repository.identifier, tags
+            return source_provider.identifier, tags
 
         dependencies = [make(specification) for specification in specifications]
         dependencies = [dependency for dependency in dependencies if dependency]
@@ -256,7 +259,7 @@ class Punic(object):
                 shutil.rmtree(output_product.product_path)
 
             if not device_product.product_path.exists():
-                raise Exception("No product at: {}".format(device_product.product_path))
+                raise GenericPunicException("No product at: {}".format(device_product.product_path))
 
             shutil.copytree(device_product.product_path, output_product.product_path, symlinks=True)
 

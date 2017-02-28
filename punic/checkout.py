@@ -7,13 +7,14 @@ from punic import shshutil as shutil
 from punic.config import config
 from punic.runner import runner
 from punic.xcode import XcodeProject
-
+from punic.errors import *
 
 class Checkout(object):
 
     def __init__(self, punic, identifier, revision, has_dependencies):
         self.identifier = identifier
-        self.repository = punic._source_provider_for_identifier(self.identifier)
+        self.source_provider = punic._source_provider_for_identifier(self.identifier)
+        self.repository = self.source_provider._repository
         self.revision = revision
         self.checkout_path = config.checkouts_path / self.identifier.project_name
 
@@ -31,14 +32,14 @@ class Checkout(object):
                 if flag == ' ':
                     pass
                 elif flag == '-':
-                    raise Exception('Uninitialized submodule {}. Please report this!'.format(self.checkout_path))
+                    raise GenericPunicException('Uninitialized submodule {}. Please report this!'.format(self.checkout_path))
                 elif flag == '+':
-                    raise Exception('Submodule {} doesn\'t match expected revision'.format(self.checkout_path))
+                    raise GenericPunicException('Submodule {} doesn\'t match expected revision'.format(self.checkout_path))
                 elif flag == 'U':
-                    raise Exception('Submodule {} has merge conflicts'.format(self.checkout_path))
+                    raise GenericPunicException('Submodule {} has merge conflicts'.format(self.checkout_path))
             else:
                 if self.checkout_path.exists():
-                    raise Exception('Want to create a submodule in {} but something already exists in there.'.format(self.checkout_path))
+                    raise GenericPunicException('Want to create a submodule in {} but something already exists in there.'.format(self.checkout_path))
                 logging.debug('Adding submodule for {}'.format(self))
                 runner.check_run(['git', 'submodule', 'add', '--force', self.identifier.remote_url, self.checkout_path.relative_to(config.root_path)])
 
@@ -59,7 +60,7 @@ class Checkout(object):
                 shutil.copytree(self.repository.path, self.checkout_path, symlinks=True, ignore=shutil.ignore_patterns('.git'))
 
         if not self.checkout_path.exists():
-            raise Exception('No checkout at path: {}'.format(self.checkout_path))
+            raise GenericPunicException('No checkout at path: {}'.format(self.checkout_path))
 
         # We only need to bother making a symlink to <root>/Carthage/Build if dependency also has dependencies.
         if self.has_dependencies:
@@ -76,6 +77,7 @@ class Checkout(object):
 
             # TODO: Generate this programatically.
             os.symlink("../../../Build", str(carthage_symlink_path))
+
 
     @property
     def projects(self):

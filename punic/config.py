@@ -10,7 +10,7 @@ import os
 from .runner import *
 from .xcode import *
 from .platform import *
-
+from punic.errors import *
 
 # TODO: This all needs to be cleaned up and made more generic. More configs will be added over time and this will only get worse
 # TODO: Allow config file to be relocated and specified on command line
@@ -100,7 +100,7 @@ class Config(object):
     def xcode_version(self, value):
         xcode = Xcode.with_version(value)
         if value and not xcode:
-            raise Exception('Could not find xcode version: {}'.format(value))
+            raise GenericPunicException('Could not find xcode version: {}'.format(value))
         if not xcode:
             xcode = Xcode.default()
         self.xcode = xcode

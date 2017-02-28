@@ -10,6 +10,7 @@ import json
 import punic
 from .utilities import reveal
 from .repository import *
+from punic.errors import *
 
 class Node:
     def __init__(self, identifier, version):
@@ -28,7 +29,8 @@ class Node:
 
 
 class Resolver(object):
-    def __init__(self, root, dependencies_for_node, export_diagnostics = False):
+    def __init__(self, punic, root, dependencies_for_node, export_diagnostics = False):
+        self.punic = punic
         self.root = root
         self.dependencies_for_node = dependencies_for_node
         self.export_diagnostics = export_diagnostics
@@ -66,7 +68,7 @@ class Resolver(object):
                 if isinstance(obj, Node):
                     return str(obj)
                 else:
-                    raise Exception("Unknown type: {}".format(type(obj)))
+                    raise GenericPunicException("Unknown type: {}".format(type(obj)))
             # https://networkx.github.io/documentation/networkx-1.10/reference/readwrite.json_graph.html
             j = json_graph.node_link_data(graph, dict(id='id', source='source.id', target='target.id', key='key'))
 

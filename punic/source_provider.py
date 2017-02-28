@@ -2,24 +2,28 @@
 from pathlib2 import Path
 
 from punic.repository import *
+from punic.errors import *
+from punic.config import config
+
+def unimplemented():
+    raise GenericPunicException("Unimplemented")
 
 class SourceProvider(object):
 
     @staticmethod
     def source_provider_with_identifier(identifier):
         if identifier.source in ('git', 'github'):
-            return GitSourceProvider(identifier.name, identifier.link)
+            return GitSourceProvider(identifier)
         elif identifier.source in ('local', 'root'):
-            return LocalSourceProvider(identifier.name, identifier.link)
+            return LocalSourceProvider(identifier)
         else:
-            raise Exception("Unknown source: {}".format(identifier.source))
+            raise GenericPunicException("Unknown source: {}".format(identifier.source))
 
 
     class Revision(object):
         pass
 
-    def __init__(self, name, identifier):
-        self.name = name
+    def __init__(self, identifier):
         self.identifier = identifier
 
     def __repr__(self):
@@ -34,11 +38,25 @@ class SourceProvider(object):
     def __hash__(self):
         return hash(self.identifier)
 
+    def revisions_for_predicate(self, predicate):
+        unimplemented()
+
 
 class GitSourceProvider(SourceProvider):
-    def __init__(self, name, remote_url):
-        super(GitSourceProvider.__init__, name, ('git', remote_url))
-        self.remote_url = remote_url
+    def __init__(self, identifier):
+        super(GitSourceProvider, self).__init__(identifier)
+        self.remote_url = identifier.link
+        self._repository = Repository(identifier = identifier)
+
+    def revisions_for_predicate(self, predicate):
+        return self._repository.revisions_for_predicate(predicate)
+
+    def specifications_for_revision(self, revision):
+        return self._repository.specifications_for_revision(revision)
+
+    def fetch(self):
+        return self._repository.fetch()
+
 
 
 class LocalSourceProvider(SourceProvider):
@@ -46,6 +64,6 @@ class LocalSourceProvider(SourceProvider):
     class Revision(SourceProvider.Revision):
         pass
 
-    def __init__(self, name, path):
-        super(LocalSourceProvider.__init__, name, ('local;', path))
-        self.path = path
+    def __init__(self, identifier):
+        super(LocalSourceProvider, self).__init__(identifier)
+        self.path = Path(identifier.link)

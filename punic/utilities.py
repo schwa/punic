@@ -1,6 +1,6 @@
 from __future__ import division, absolute_import, print_function
 
-__all__ = ['work_directory', 'timeit']
+__all__ = ['work_directory', 'timeit', 'deprecated', 'unimplemented']
 
 import contextlib
 import os
@@ -9,6 +9,14 @@ import logging
 import punic
 import subprocess
 from pathlib2 import Path
+
+from punic.errors import *
+
+def deprecated():
+    raise DeprecatedError()
+
+def unimplemented():
+    raise UnimplementedError()
 
 @contextlib.contextmanager
 def work_directory(path):

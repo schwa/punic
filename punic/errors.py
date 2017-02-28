@@ -15,6 +15,8 @@ class CartfileNotFound(Exception):
 class PunicRepresentableError(Exception):
     pass
 
+class GenericPunicException(Exception):
+    pass
 
 class InvalidCarthageSpecification(Exception):
     pass
@@ -24,6 +26,12 @@ class NoSuchRevision(Exception):
         self.repository = repository
         self.revision = revision
         self.message = "No such revision <rev>'{}'</rev> in repository <ref>'{}'</ref>.".format(self.revision, self.repository)
+
+class UnimplementedError(Exception):
+    pass
+
+class DeprecatedError(Exception):
+    pass
 
 
 @contextlib.contextmanager

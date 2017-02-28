@@ -35,7 +35,7 @@ class Specification(object):
         github "foo/bar"
         >>> Specification.cartfile_string('github "foo/bar" "master"').identifier
         foo/bar
-        >>> Specification.cartfile_string('github "foo/bar" "master"').predicate
+        >>> Specification.cartfile_string('github "foo®/bar" "master"').predicate
         "master"
         >>> Specification.cartfile_string('github "foo/bar" "master"')
         github "foo/bar" "master"
@@ -53,7 +53,7 @@ class Specification(object):
 
         match = re.match(r'^(?P<address>(?P<service>github|git)\s+"[^/]+/(?:.+?)")(?:\s+(?P<predicate>.+)?)?', string)
         if not match:
-            raise Exception('Bad spec {}'.format(string))
+            raise GenericPunicException('Bad spec {}'.format(string))
 
         identifier = ProjectIdentifier.string(match.group('address'), use_ssh=use_ssh, overrides=overrides)
         predicate = VersionPredicate(match.group('predicate'))
@@ -97,7 +97,7 @@ class ProjectIdentifier(object):
 
         match = re.match(r'^(?P<source>github|git)\s+"(?P<link>.+)"', string)
         if not match:
-            raise Exception('No match')
+            raise GenericPunicException('No match')
 
         source = match.group('source')
         link = match.group('link')
@@ -105,7 +105,7 @@ class ProjectIdentifier(object):
         if source == 'github':
             match = re.match(r'^(?P<team_name>[^/]+)/(?P<project_name>[^/]+)$', link)
             if not match:
-                raise Exception('No match')
+                raise GenericPunicException('No match: {}'.format(link))
             team_name = match.group('team_name')
             project_name = match.group('project_name')
 
@@ -115,14 +115,17 @@ class ProjectIdentifier(object):
                 link = 'git@github.com:{}/{}.git'.format(team_name, project_name)
         elif source == 'git':
             project_name = Path(urlparse.urlparse(link).path).stem
+            team_name = None
+            project_name = None
         else:
             raise InvalidCarthageSpecification('No match: {}'.format())
 
-        return ProjectIdentifier(source=source, link=link, project_name=project_name, overrides=overrides)
+        return ProjectIdentifier(source=source, link=link, team_name=team_name, project_name=project_name, overrides=overrides)
 
-    def __init__(self, source, link, project_name, overrides=None):
+    def __init__(self, source, link, team_name = None, project_name = None, overrides=None):
         self.source = source
         self.link = link
+        self.team_name = team_name
         self.project_name = project_name
         if overrides and self.project_name in overrides:
             override_url = overrides[self.project_name]
@@ -135,9 +138,9 @@ class ProjectIdentifier(object):
         if self.source == 'git':
             return '{} "{}"'.format(self.source, self.link)
         elif self.source == 'github':
-            return '{} "{}"'.format(self.source, self.link)
+            return '{} "{}/{}"'.format(self.source, self.team_name, self.project_name)
         else:
-            raise Exception("Unknown source")
+            raise GenericPunicException("Unknown source")
 
     @mproperty
     def identifier(self):
@@ -216,7 +219,7 @@ class VersionPredicate(object):
         else:
             match = re.match(r'(?:(~>|>=|==|)\s+)?(?:"(.+)"|(.+))', string)
             if not match:
-                raise Exception('No match for: {}'.format(string))
+                raise GenericPunicException('No match for: {}'.format(string))
 
             operator = match.group(1)
             value = match.group(2) if match.group(2) else match.group(3)
