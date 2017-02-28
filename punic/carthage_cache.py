@@ -13,11 +13,11 @@ import yaml
 
 from .shshutil import *
 from .errors import *
+from .config import config
 
 
 class CarthageCache(object):
     def __init__(self, config):
-        self.config = config
 
         config_path = Path('.carthage_cache.yml')
         if not config_path.exists():
@@ -34,13 +34,13 @@ class CarthageCache(object):
 
     @property
     def archives_directory_path(self):
-        path = self.config.library_directory / "Archives"
+        path = config.library_directory / "Archives"
         if not path.exists():
             path.mkdir(parents=True)
         return path
 
     def hash_for_project(self):
-        output = self.config.xcode.check_call('swift -version')
+        output = config.xcode.check_call('swift -version')
         swift_version = re.search(r'Swift version ((?:\d+\.)*(?:\d+))', output).group(1)
 
         resolve_file = Path('Cartfile.resolved').open().read()
@@ -159,11 +159,11 @@ class CarthageCache(object):
         with zipfile.ZipFile(str(archive_path)) as archive:
             archive.extractall(str(temp_dir))
 
-        if self.config.build_path.exists():
-            rmtree(self.config.build_path)
+        if config.build_path.exists():
+            rmtree(config.build_path)
 
-        logging.info('Replacing {}.'.format(self.config.build_path))
-        move(temp_dir, self.config.build_path)
+        logging.info('Replacing {}.'.format(config.build_path))
+        move(temp_dir, config.build_path)
 
 
 def walk_directory(path):

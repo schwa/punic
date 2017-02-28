@@ -16,16 +16,12 @@ class Checkout(object):
         self.identifier = identifier
         self.repository = self.punic._source_provider_for_identifier(self.identifier)
         self.revision = revision
-        self.checkout_path = self.config.checkouts_path / self.identifier.project_name
-
-    @property
-    def config(self):
-        return self.punic.config
+        self.checkout_path = config.checkouts_path / self.identifier.project_name
 
     def prepare(self):
 
-        if self.config.use_submodules:
-            relative_checkout_path = self.checkout_path.relative_to(self.config.root_path)
+        if config.use_submodules:
+            relative_checkout_path = self.checkout_path.relative_to(config.root_path)
 
             result = runner.run('git submodule status "{}"'.format(relative_checkout_path))
             if result.return_code == 0:
@@ -43,7 +39,7 @@ class Checkout(object):
                 if self.checkout_path.exists():
                     raise Exception('Want to create a submodule in {} but something already exists in there.'.format(self.checkout_path))
                 logging.debug('Adding submodule for {}'.format(self))
-                runner.check_run(['git', 'submodule', 'add', '--force', self.identifier.remote_url, self.checkout_path.relative_to(self.config.root_path)])
+                runner.check_run(['git', 'submodule', 'add', '--force', self.identifier.remote_url, self.checkout_path.relative_to(config.root_path)])
 
             # runner.check_run(['git', 'submodule', 'add', '--force', self.identifier.remote_url, self.checkout_path.relative_to(self.config.root_path)])
             # runner.check_run(['git', 'submodule', 'update', self.checkout_path.relative_to(self.config.root_path)])
@@ -53,7 +49,7 @@ class Checkout(object):
         else:
 
             # TODO: This isn't really 'fetch'
-            if self.config.fetch:
+            if config.fetch:
 
                 self.repository.checkout(self.revision)
                 logging.debug('<sub>Copying project to <ref>Carthage/Checkouts</ref></sub>')
@@ -74,8 +70,8 @@ class Checkout(object):
             carthage_symlink_path = carthage_path / 'Build'
             if carthage_symlink_path.exists():
                 carthage_symlink_path.unlink()
-            logging.debug('<sub>Creating symlink: <ref>{}</ref> to <ref>{}</ref></sub>'.format(carthage_symlink_path.relative_to(self.config.root_path), self.config.build_path.relative_to(self.config.root_path)))
-            assert self.config.build_path.exists()
+            logging.debug('<sub>Creating symlink: <ref>{}</ref> to <ref>{}</ref></sub>'.format(carthage_symlink_path.relative_to(config.root_path), config.build_path.relative_to(config.root_path)))
+            assert config.build_path.exists()
 
             # TODO: Generate this programatically.
             os.symlink("../../../Build", str(carthage_symlink_path))

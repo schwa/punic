@@ -35,7 +35,7 @@ class Repository(object):
         else:
             remote_url = self.identifier.remote_url.encode("utf-8")
             url_hash = hashlib.md5(remote_url).hexdigest()
-            self.path = punic.config.repo_cache_directory / "{}_{}".format(self.identifier.project_name, url_hash)
+            self.path = config.repo_cache_directory / "{}_{}".format(self.identifier.project_name, url_hash)
 
         self.specifications_cache = dict()
 
@@ -54,10 +54,6 @@ class Repository(object):
     def check_work_directory(self):
         if not self.path.exists():
             raise RepositoryNotClonedError()
-
-    # @property
-    # def config(self):
-    #     return self.punic.config
 
     @mproperty
     def tags(self):
@@ -135,7 +131,7 @@ class Repository(object):
         if revision in self.specifications_cache:
             return self.specifications_cache[revision]
         elif revision is None and self == self.punic.root_project:
-            cartfile = Cartfile(use_ssh=self.config.use_ssh, overrides=config.repo_overrides)
+            cartfile = Cartfile(use_ssh=config.use_ssh, overrides=config.repo_overrides)
             specifications = []
 
             cartfile_path = self.path / 'Cartfile'
@@ -170,7 +166,7 @@ class Repository(object):
                 specifications = []
             else:
                 data = result.stdout
-                cartfile = Cartfile(use_ssh=self.config.use_ssh, overrides=config.repo_overrides)
+                cartfile = Cartfile(use_ssh=config.use_ssh, overrides=config.repo_overrides)
                 cartfile.read(data)
                 specifications = cartfile.specifications
 
