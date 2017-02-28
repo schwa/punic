@@ -12,6 +12,7 @@ from jsonpath_rw import jsonpath, parse
 from memoize import mproperty
 import subprocess
 import shlex
+import six
 
 def value(path, json):
     path = parse(path)
@@ -34,8 +35,8 @@ class GitHub(object):
     @mproperty
     def auth(self):
         try:
-            github_user = unicode(subprocess.check_output(shlex.split('git config --get github.user')).strip(), 'utf-8')
-            github_token = unicode(subprocess.check_output(shlex.split('git config --get github.token')).strip(), 'utf-8')
+            github_user = six.text_type(subprocess.check_output(shlex.split('git config --get github.user')).strip(), 'utf-8')
+            github_token = six.text_type(subprocess.check_output(shlex.split('git config --get github.token')).strip(), 'utf-8')
         except subprocess.CalledProcessError:
             return None
         return github_user, github_token
