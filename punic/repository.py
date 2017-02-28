@@ -55,9 +55,9 @@ class Repository(object):
         if not self.path.exists():
             raise RepositoryNotClonedError()
 
-    @property
-    def config(self):
-        return self.punic.config
+    # @property
+    # def config(self):
+    #     return self.punic.config
 
     @mproperty
     def tags(self):

@@ -24,7 +24,7 @@ current_session = None
 
 
 class Punic(object):
-    __slots__ = ['root_path', 'config', 'all_repositories', 'root_project']
+    __slots__ = ['root_path', 'config', 'all_source_providers', 'root_project']
 
     def __init__(self, root_path=None):
 
@@ -41,9 +41,9 @@ class Punic(object):
 
         root_project_identifier = ProjectIdentifier(overrides=None, project_name=self.config.root_path.name)
 
-        self.all_repositories = {root_project_identifier: Repository(punic=self, identifier=root_project_identifier, repo_path=self.config.root_path),}
+        self.all_source_providers = {root_project_identifier: Repository(punic=self, identifier=root_project_identifier, repo_path=self.config.root_path), }
 
-        self.root_project = self._repository_for_identifier(root_project_identifier)
+        self.root_project = self._source_provider_for_identifier(root_project_identifier)
 
     def _resolver(self, export_diagnostics = False):
         return Resolver(root=Node(self.root_project.identifier, None), dependencies_for_node=self._dependencies_for_node, export_diagnostics = export_diagnostics)
@@ -139,7 +139,7 @@ class Punic(object):
         cartfile.read(self.config.root_path / 'Cartfile.resolved')
 
         def _predicate_to_revision(spec):
-            repository = self._repository_for_identifier(spec.identifier)
+            repository = self._source_provider_for_identifier(spec.identifier)
             if spec.predicate.operator == VersionOperator.commitish:
                 try:
                     revision = Revision(repository=repository, revision=spec.predicate.value, revision_type=Revision.Type.commitish, check = True)
@@ -156,15 +156,15 @@ class Punic(object):
         resolved_dependencies = [dependency for dependency in resolved_dependencies if dependency.identifier.matches(name_filter)]
         return resolved_dependencies
 
-    def _repository_for_identifier(self, identifier):
-        # type: (ProjectIdentifier) -> Repository
-        if identifier in self.all_repositories:
-            return self.all_repositories[identifier]
+    def _source_provider_for_identifier(self, identifier):
+        # type: (ProjectIdentifier) -> SourceProvider
+        if identifier in self.all_source_providers:
+            return self.all_source_providers[identifier]
         else:
             repository = Repository(self, identifier=identifier)
             if self.config.fetch:
                 repository.fetch()
-            self.all_repositories[identifier] = repository
+            self.all_source_providers[identifier] = repository
             return repository
 
     def dependencies_for_project_and_tag(self, identifier, tag):
@@ -173,11 +173,11 @@ class Punic(object):
         assert isinstance(identifier, ProjectIdentifier)
         assert not tag or isinstance(tag, Revision)
 
-        repository = self._repository_for_identifier(identifier)
+        repository = self._source_provider_for_identifier(identifier)
         specifications = repository.specifications_for_revision(tag)
 
         def make(specification):
-            repository = self._repository_for_identifier(specification.identifier)
+            repository = self._source_provider_for_identifier(specification.identifier)
             tags = repository.revisions_for_predicate(specification.predicate)
             if specification.predicate.operator == VersionOperator.commitish:
                 try:

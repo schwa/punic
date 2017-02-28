@@ -14,7 +14,7 @@ class Checkout(object):
     def __init__(self, punic, identifier, revision):
         self.punic = punic
         self.identifier = identifier
-        self.repository = self.punic._repository_for_identifier(self.identifier)
+        self.repository = self.punic._source_provider_for_identifier(self.identifier)
         self.revision = revision
         self.checkout_path = self.config.checkouts_path / self.identifier.project_name
 

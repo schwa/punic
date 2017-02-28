@@ -132,6 +132,7 @@ class ProjectIdentifier(object):
         self.remote_url = remote_url
         if overrides and self.project_name in overrides:
             override_url = overrides[self.project_name]
+
             logging.info('Overriding {} with git URL {}'.format(self.project_name, override_url))
             self.remote_url = override_url
 
