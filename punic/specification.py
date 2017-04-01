@@ -33,8 +33,6 @@ class Specification(object):
         """
         >>> Specification.cartfile_string('github "foo/bar"')
         github "foo/bar"
-        >>> Specification.cartfile_string('github "foo/bar" "master"').identifier
-        foo/bar
         >>> Specification.cartfile_string('github "foo/bar" "master"').predicate
         "master"
         >>> Specification.cartfile_string('github "foo/bar" "master"')
@@ -42,13 +40,13 @@ class Specification(object):
         >>> Specification.cartfile_string('github "foo/bar" >= 1.0').predicate
         >= 1.0
         >>> Specification.cartfile_string('github "ReactiveX/RxSwift" "some/branch"').identifier
-        ReactiveX/RxSwift
+        github "ReactiveX/RxSwift"
         >>> Specification.cartfile_string('github "ReactiveX/RxSwift" "some/branch"').predicate
         "some/branch"
         >>> Specification.cartfile_string('git "file:///Users/example/Project" "some/branch"').identifier
-        Project
+        git "file:///Users/example/Project"
         >>> Specification.cartfile_string('git "git@gitlab.com:mokagio/punic-cartfile-issue.git" "master"').identifier
-        punic-cartfile-issue
+        git "git@gitlab.com:mokagio/punic-cartfile-issue.git"
         """
 
         match = re.match(r'^(?P<address>(?P<service>github|git)\s+"[^/]+/(?:.+?)")(?:\s+(?P<predicate>.+)?)?', string)
@@ -77,19 +75,17 @@ class ProjectIdentifier(object):
         # type: (str, bool, dict) -> ProjectIdentifier
         """
         >>> ProjectIdentifier.string('github "foo/bar"')
-        foo/bar
+        github "foo/bar"
         >>> ProjectIdentifier.string('github "foo/bar"').team_name
         'foo'
         >>> ProjectIdentifier.string('github "foo/bar"').project_name
         'bar'
-        >>> ProjectIdentifier.string('github "foo/bar"').identifier
-        'foo/bar'
         >>> ProjectIdentifier.string('github "foo/bar"').full_identifier
         'github "foo/bar"'
         >>> ProjectIdentifier.string('git "file:///Users/example/Projects/Example-Project"')
-        Example-Project
+        git "file:///Users/example/Projects/Example-Project"
         >>> ProjectIdentifier.string('git "git@gitlab.com:mokagio/punic-cartfile-issue.git"')
-        punic-cartfile-issue
+        git "git@gitlab.com:mokagio/punic-cartfile-issue.git"
         """
 
         assert isinstance(string, six.string_types)
@@ -143,19 +139,19 @@ class ProjectIdentifier(object):
             raise GenericPunicException("Unknown source")
 
     @mproperty
-    def identifier(self):
+    def _canonical_identifier(self):
         components = [self.source, str(self.link)]
         return '/'.join(components)
 
     def __repr__(self):
-        return self.identifier
+        return self.full_identifier
 
     def __eq__(self, other):
         """
         >>> ProjectIdentifier.string('github "foo/bar"') == ProjectIdentifier.string('github "foo/bar"')
         True
         """
-        return self.identifier.lower() == other.identifier.lower()
+        return self._canonical_identifier.lower() == other._canonical_identifier.lower()
 
     def __ne__(self, other):
         """
@@ -169,7 +165,7 @@ class ProjectIdentifier(object):
         >>> ProjectIdentifier.string('github "foo/bar"') < ProjectIdentifier.string('github "foo/bar2"')
         True
         """
-        return self.identifier.lower() < other.identifier.lower()
+        return self._canonical_identifier.lower() < other._canonical_identifier.lower()
 
     def __hash__(self):
         """
@@ -178,7 +174,7 @@ class ProjectIdentifier(object):
         >>> hash(ProjectIdentifier.string('github "foo/bar"')) != hash(ProjectIdentifier.string('github "foo/bar2"'))
         True
         """
-        return hash(self.identifier.lower())
+        return hash(self._canonical_identifier.lower())
 
     def matches(self, name_filter):
         # type: ([str]) -> bool
