@@ -107,10 +107,10 @@ class Runner(object):
         popen = subprocess.Popen(args, cwd=cwd, stdout=stdout, stderr=stderr, env=env)
         stdout, stderr = popen.communicate()
 
-        if stdout:
-            stdout = six.text_type(stdout, encoding='utf-8')
-        if stderr:
-            stderr = six.text_type(stderr, encoding='utf-8')
+        if stdout is not None:
+            stdout = stdout.decode('utf-8')
+        if stderr is not None:
+            stderr = stderr.decode('utf-8')
 
         return_code = popen.returncode
 
