@@ -141,16 +141,16 @@ class SemanticVersion(object):
         5.0
         >>> SemanticVersion.string('garbage')
         Traceback (most recent call last):
-        Exception: "garbage" not a semantic version.
+        punic.errors.GenericPunicException: "garbage" not a semantic version.
         >>> SemanticVersion.string('v')
         Traceback (most recent call last):
-        Exception: "v" not a semantic version.
+        punic.errors.GenericPunicException: "v" not a semantic version.
         >>> SemanticVersion.string('')
         Traceback (most recent call last):
-        Exception: "" not a semantic version.
+        punic.errors.GenericPunicException: "" not a semantic version.
         >>> SemanticVersion.string('sync-hackathon-2015-11-09')
         Traceback (most recent call last):
-        Exception: "sync-hackathon-2015-11-09" not a semantic version.
+        punic.errors.GenericPunicException: "sync-hackathon-2015-11-09" not a semantic version.
         """
         match = SemanticVersion.expression.match(s)
         if not match:
