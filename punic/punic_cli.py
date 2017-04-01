@@ -115,8 +115,6 @@ def resolve(context, **kwargs):
     logging.info("<cmd>Resolve</cmd>")
     punic.config.update(**kwargs)
 
-    print(kwargs.keys())
-
     with timeit('resolve'):
         with error_handling():
             punic.resolve(export_diagnostics = kwargs['export_diagnostics'])
