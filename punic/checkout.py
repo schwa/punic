@@ -106,7 +106,7 @@ class Checkout(object):
             if embedded_project_pattern .search(str(project_path)):
                 #print('Skipping project\'s embedded workspace:', project_path)
                 continue
-            project = XcodeProject(config.xcode, project_path, _make_cache_identifier(project_path))
+            project = XcodeProject(self, config.xcode, project_path, _make_cache_identifier(project_path))
             for scheme in list(project.scheme_names):
                 if scheme in schemes:
                     project.info[2].remove(scheme)
