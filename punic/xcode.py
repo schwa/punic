@@ -53,6 +53,12 @@ class Xcode(object):
         match = re.match(r'^Xcode (?P<version>.+)\nBuild version (?P<build>.+)', output)
         return SemanticVersion.string(match.groupdict()['version'])
 
+    @mproperty
+    def internal_version(self):
+        output = self.check_call(['xcodebuild', '-version'], env={'DEVELOPER_DIR': str(self.developer_dir_path)})
+        match = re.match(r'^Xcode (?P<version>.+)\nBuild version (?P<build>.+)', output)
+        return match.groupdict()['build']
+
 
     # noinspection PyMethodMayBeStatic
     def call(self, command, **kwargs):
@@ -76,7 +82,16 @@ class Xcode(object):
         return result.stdout
 
     def __repr__(self):
-        return '{} ({})'.format(self.path, self.version)
+        return '{} ({}/{})'.format(self.path, self.version, self.internal_version)
+
+    def __eq__(self, other):
+        return self.internal_version == other.internal_version
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return self.internal_version < other.internal_version
 
 
 ########################################################################################################################
