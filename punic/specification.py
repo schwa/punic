@@ -35,7 +35,7 @@ class Specification(object):
         github "foo/bar"
         >>> Specification.cartfile_string('github "foo/bar" "master"').identifier
         foo/bar
-        >>> Specification.cartfile_string('github "foo®/bar" "master"').predicate
+        >>> Specification.cartfile_string('github "foo/bar" "master"').predicate
         "master"
         >>> Specification.cartfile_string('github "foo/bar" "master"')
         github "foo/bar" "master"
