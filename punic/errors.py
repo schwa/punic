@@ -34,6 +34,10 @@ class DeprecatedError(Exception):
     pass
 
 
+class XcodeVersionError(Exception):
+    pass
+
+
 @contextlib.contextmanager
 def error_handling():
     try:

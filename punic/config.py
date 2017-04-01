@@ -6,6 +6,7 @@ from pathlib2 import Path
 import yaml
 import logging
 import os
+import six
 
 from .runner import *
 from .xcode import *
@@ -32,6 +33,10 @@ class Config(object):
         self.punic_path = self.root_path / 'Carthage'
         self.build_path = self.punic_path / 'Build'
         self.checkouts_path = self.punic_path / 'Checkouts'
+
+        self.build_log_directory = Path('~/Library/Logs/Punic/Builds').expanduser()
+        if not self.build_log_directory.exists():
+            self.build_log_directory.mkdir(parents=True)
 
         self.derived_data_path = self.library_directory / "DerivedData"
 
@@ -120,7 +125,7 @@ class Config(object):
             elif 'platform' in defaults:
                 self.platforms = parse_platforms(defaults['platform'])
             if 'xcode-version' in defaults:
-                self.xcode_version = defaults['xcode-version']
+                self.xcode_version = six.text_type(defaults['xcode-version'])
 
             if 'use-ssh' in defaults:
                 self.use_ssh = defaults['use-ssh']

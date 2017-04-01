@@ -11,7 +11,7 @@ import logging
 
 from .runner import *
 from .semantic_version import *
-
+from .errors import *
 
 class Xcode(object):
     _all_xcodes = None
@@ -29,17 +29,26 @@ class Xcode(object):
             version = SemanticVersion.string(version)
         if isinstance(version, int):
             version = SemanticVersion(major=version, minor=0)
-        return Xcode.find_all()[version] if version in Xcode.find_all() else None
+        found = [xcode for xcode in Xcode.find_all() if xcode.version == version]
+
+        if len(found) == 0:
+            raise XcodeVersionError("No Xcode with version {} found".format(version))
+        elif len(found) > 1:
+            raise XcodeVersionError("Multiple Xcodes of version {} found: {}".format(version, found))
+        else:
+            return found[0]
 
     @classmethod
     def find_all(cls):
         if Xcode._all_xcodes is None:
             output = runner.check_run('/usr/bin/mdfind \'kMDItemCFBundleIdentifier="com.apple.dt.Xcode" and kMDItemContentType="com.apple.application-bundle"\'')
-            xcodes = [Xcode(Path(path)) for path in output.strip().split("\n")]
-            Xcode._all_xcodes = dict([(xcode.version, xcode) for xcode in xcodes])
+            all_xcodes = [Xcode(Path(path)) for path in output.strip().split("\n")]
+            Xcode._all_xcodes = all_xcodes
+
             default_developer_dir_path = Path(runner.check_run(['xcode-select', '-p']).strip())
-            Xcode._default_xcode = [xcode for version, xcode in Xcode._all_xcodes.items() if xcode.developer_dir_path == default_developer_dir_path][0]
+            Xcode._default_xcode = [xcode for xcode in all_xcodes if xcode.developer_dir_path == default_developer_dir_path][0]
             Xcode._default_xcode.is_default = True
+
         return Xcode._all_xcodes
 
     def __init__(self, path):
@@ -52,6 +61,12 @@ class Xcode(object):
         output = self.check_call(['xcodebuild', '-version'], env={'DEVELOPER_DIR': str(self.developer_dir_path)})
         match = re.match(r'^Xcode (?P<version>.+)\nBuild version (?P<build>.+)', output)
         return SemanticVersion.string(match.groupdict()['version'])
+
+    @mproperty
+    def internal_version(self):
+        output = self.check_call(['xcodebuild', '-version'], env={'DEVELOPER_DIR': str(self.developer_dir_path)})
+        match = re.match(r'^Xcode (?P<version>.+)\nBuild version (?P<build>.+)', output)
+        return match.groupdict()['build']
 
 
     # noinspection PyMethodMayBeStatic
@@ -76,17 +91,28 @@ class Xcode(object):
         return result.stdout
 
     def __repr__(self):
-        return '{} ({})'.format(self.path, self.version)
+        return '{} ({}/{})'.format(self.path, self.version, self.internal_version)
+
+    def __eq__(self, other):
+        return self.internal_version == other.internal_version
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return self.internal_version < other.internal_version
 
 
 ########################################################################################################################
 
 class XcodeProject(object):
-    def __init__(self, xcode, path, identifier):
+    def __init__(self, checkout, xcode, path, identifier):
+        assert checkout
         assert xcode
         assert path
         assert identifier
 
+        self.checkout = checkout
         self.xcode = xcode
         self.path = path
         self.identifier = identifier
@@ -106,6 +132,10 @@ class XcodeProject(object):
     @property
     def scheme_names(self):
         return self.info[2]
+
+    @property
+    def punic(self):
+        return self.checkout.punic
 
     @mproperty
     def schemes(self):
@@ -135,8 +165,15 @@ class XcodeProject(object):
             self.check_call(subcommand='build', arguments=arguments)
         except CalledProcessError as e:
             logging.error('<err>Error</err>: Failed to build - result code <echo>{}</echo>'.format(e.returncode))
-            logging.error('Command: <echo>{}</echo>'.format(e.cmd))
-            logging.error(e.output)
+            logging.error('Command: <echo>{}</echo>'.format(' '.join(e.cmd)))
+
+            project_name = self.checkout.punic.config.root_path.name
+
+            log_path = self.checkout.config.build_log_directory / "{}.log".format(project_name)
+            logging.error('xcodebuild log written to <ref>{}</ref>'.format(log_path))
+            log_path.open("w").write(e.output)
+
+            #logging.error(e.output)
             exit(e.returncode)
 
         build_settings = self.build_settings(arguments=arguments)
