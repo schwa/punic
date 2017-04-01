@@ -41,6 +41,7 @@ class Cartfile(object):
         lines = [re.sub(r'\s*#.+', '', line) for line in lines]
         lines = [line.strip() for line in lines]
         lines = [line for line in lines if line]
+        lines = [line for line in lines if line != "#"]
         self.specifications = [Specification.cartfile_string(line, use_ssh=self.use_ssh, overrides=self.overrides) for line in lines]
         return self.specifications
 
