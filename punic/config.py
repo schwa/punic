@@ -6,6 +6,7 @@ from pathlib2 import Path
 import yaml
 import logging
 import os
+import six
 
 from .runner import *
 from .xcode import *
@@ -120,7 +121,7 @@ class Config(object):
             elif 'platform' in defaults:
                 self.platforms = parse_platforms(defaults['platform'])
             if 'xcode-version' in defaults:
-                self.xcode_version = defaults['xcode-version']
+                self.xcode_version = six.text_type(defaults['xcode-version'])
 
             if 'use-ssh' in defaults:
                 self.use_ssh = defaults['use-ssh']

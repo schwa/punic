@@ -23,6 +23,10 @@ class NoSuchRevision(Exception):
         self.message = "No such revision <rev>'{}'</rev> in repository <ref>'{}'</ref>.".format(self.revision, self.repository)
 
 
+class XcodeVersionError(Exception):
+    pass
+
+
 @contextlib.contextmanager
 def error_handling():
     try:

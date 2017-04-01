@@ -11,7 +11,7 @@ import logging
 
 from .runner import *
 from .semantic_version import *
-
+from .errors import *
 
 class Xcode(object):
     _all_xcodes = None
@@ -29,17 +29,26 @@ class Xcode(object):
             version = SemanticVersion.string(version)
         if isinstance(version, int):
             version = SemanticVersion(major=version, minor=0)
-        return Xcode.find_all()[version] if version in Xcode.find_all() else None
+        found = [xcode for xcode in Xcode.find_all() if xcode.version == version]
+
+        if len(found) == 0:
+            raise XcodeVersionError("No Xcode with version {} found".format(version))
+        elif len(found) > 1:
+            raise XcodeVersionError("Multiple Xcodes of version {} found: {}".format(version, found))
+        else:
+            return found[0]
 
     @classmethod
     def find_all(cls):
         if Xcode._all_xcodes is None:
             output = runner.check_run('/usr/bin/mdfind \'kMDItemCFBundleIdentifier="com.apple.dt.Xcode" and kMDItemContentType="com.apple.application-bundle"\'')
-            xcodes = [Xcode(Path(path)) for path in output.strip().split("\n")]
-            Xcode._all_xcodes = dict([(xcode.version, xcode) for xcode in xcodes])
+            all_xcodes = [Xcode(Path(path)) for path in output.strip().split("\n")]
+            Xcode._all_xcodes = all_xcodes
+
             default_developer_dir_path = Path(runner.check_run(['xcode-select', '-p']).strip())
-            Xcode._default_xcode = [xcode for version, xcode in Xcode._all_xcodes.items() if xcode.developer_dir_path == default_developer_dir_path][0]
+            Xcode._default_xcode = [xcode for xcode in all_xcodes if xcode.developer_dir_path == default_developer_dir_path][0]
             Xcode._default_xcode.is_default = True
+
         return Xcode._all_xcodes
 
     def __init__(self, path):
