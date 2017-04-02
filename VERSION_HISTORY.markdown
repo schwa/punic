@@ -1,5 +1,11 @@
 # Version History
 
+## 0.2.7
+
+* circleci now runs all unit tests for punic
+* Handles situation where mdfind fails to find Xcode
+* Lots of other fixes to enable circleci testing
+
 ## 0.2.6
 
 * Minor bug fixes
