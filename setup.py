@@ -3,8 +3,9 @@
 from setuptools import setup
 
 def check_libyaml():
-    import subprocess
-    if not subprocess.check_output(['brew', 'ls', '--versions', 'libyaml']):
+    # TODO: This is a very crude way to detect if libyaml is installed. Should probably move off of libyaml anyways.
+    import os
+    if not os.path.exists('/usr/local/lib/libyaml.dylib'):
         import sys
         sys.stderr.write('Error: {}\nError: libyaml not installed. Use `brew install libyaml` to install it\nError: {}\n'.format('*' * 80, '*' * 80))
         exit(-1)

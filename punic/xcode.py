@@ -41,17 +41,31 @@ class Xcode(object):
     @classmethod
     def find_all(cls):
         if Xcode._all_xcodes is None:
+
+            all_xcodes = set()
+
+            all_xcodes.update(Xcode(path) for path in Path("/Applications").glob("Xcode*.app"))
+
             output = runner.check_run('/usr/bin/mdfind \'kMDItemCFBundleIdentifier="com.apple.dt.Xcode" and kMDItemContentType="com.apple.application-bundle"\'')
-            all_xcodes = [Xcode(Path(path)) for path in output.strip().split("\n")]
-            Xcode._all_xcodes = all_xcodes
+            all_xcodes.update(Xcode(Path(path)) for path in output.strip().split("\n") if path)
 
             default_developer_dir_path = Path(runner.check_run(['xcode-select', '-p']).strip())
-            Xcode._default_xcode = [xcode for xcode in all_xcodes if xcode.developer_dir_path == default_developer_dir_path][0]
+            if six.text_type(default_developer_dir_path).endswith('/Contents/Developer'):
+                default_developer_dir_path = default_developer_dir_path.parent.parent
+            Xcode._default_xcode = Xcode(default_developer_dir_path)
             Xcode._default_xcode.is_default = True
+
+            all_xcodes.discard(Xcode._default_xcode)
+            all_xcodes.add(Xcode._default_xcode)
+
+            Xcode._all_xcodes = all_xcodes
 
         return Xcode._all_xcodes
 
     def __init__(self, path):
+        assert(path.is_dir())
+        assert(path.suffix == '.app')
+
         self.path = path
         self.is_default = False
         self.developer_dir_path = self.path / 'Contents/Developer'
@@ -91,7 +105,10 @@ class Xcode(object):
         return result.stdout
 
     def __repr__(self):
-        return '{} ({}/{})'.format(self.path, self.version, self.internal_version)
+        s = '{} ({}/{})'.format(self.path, self.version, self.internal_version)
+        if self.is_default:
+            s += ' (default)'
+        return s
 
     def __eq__(self, other):
         return self.internal_version == other.internal_version
@@ -102,6 +119,8 @@ class Xcode(object):
     def __lt__(self, other):
         return self.internal_version < other.internal_version
 
+    def __hash__(self):
+        return hash(self.internal_version)
 
 ########################################################################################################################
 

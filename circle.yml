@@ -1,0 +1,22 @@
+machine:
+  xcode:
+    version: 8.3
+  pre:
+    # from https://discuss.circleci.com/t/virtualenv-error-on-osx-build/387/2
+    - sudo -H pip install --upgrade virtualenv
+dependencies:
+  override:
+    - brew install libyaml
+    - brew install python
+    - brew install python3
+    - sudo -H pip install -r requirements_test.txt
+compile:
+  override:
+test:
+  environment:
+    LC_ALL: "en_US.UTF-8"
+    LANG: "en_US.UTF-8"
+  override:
+    - which python
+    - env
+    - sudo -H tox
