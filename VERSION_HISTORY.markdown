@@ -1,5 +1,9 @@
 # Version History
 
+## 0.2.8
+
+* Ooops. Didn't update __version__.
+
 ## 0.2.7
 
 * circleci now runs all unit tests for punic
