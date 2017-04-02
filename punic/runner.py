@@ -9,6 +9,7 @@ from subprocess import CalledProcessError
 from memoize import mproperty
 import six
 import logging
+import os
 
 class Result(object):
     def __init__(self):
@@ -16,12 +17,12 @@ class Result(object):
         self.stdout = None
         self.stderr = None
 
-
 class Runner(object):
-    def __init__(self, cache_path=None):
+    def __init__(self, cache_path=None, echo=False, echo_directories=True, extra_env=None):
         self.cache_path = cache_path
-        self.echo = False
-        self.echo_directories = True
+        self.echo = echo
+        self.echo_directories = echo_directories
+        self.extra_env = extra_env
 
     @mproperty
     def shelf(self):
@@ -73,7 +74,7 @@ class Runner(object):
     # TODO: Cleanup
     check_call = check_run
 
-    def run(self, command, cwd=None, echo=None, cache_key=None, check=False, env=None):
+    def run(self, command, cwd=None, echo=None, cache_key=None, check=False, env=None, use_os_environ=True):
         args = self.convert_args(command)
 
         if echo or echo is None and self.echo:
@@ -104,7 +105,15 @@ class Runner(object):
         if cwd:
             cwd = str(cwd)
 
-        popen = subprocess.Popen(args, cwd=cwd, stdout=stdout, stderr=stderr, env=env)
+        resolved_env = dict()
+        if use_os_environ:
+            resolved_env.update(os.environ)
+        if env:
+            resolved_env.update(env)
+        if self.extra_env:
+            resolved_env.update(self.extra_env)
+
+        popen = subprocess.Popen(args, cwd=cwd, stdout=stdout, stderr=stderr, env=resolved_env)
         stdout, stderr = popen.communicate()
 
         if stdout is not None:
