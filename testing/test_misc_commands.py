@@ -11,4 +11,4 @@ def test_version():
     temp_dir = Path(tempfile.mkdtemp())
 
     with work_directory(temp_dir):
-        output = runner.check_run('punic version')
+        output = runner.check_run('punic')

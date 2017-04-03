@@ -53,6 +53,9 @@ class Config(object):
         self.echo = False
 
         self.continuous_integration = 'CI' in os.environ
+        if self.continuous_integration:
+            logging.info("Running on continuous integration")
+
         # Read in defaults from punic.yaml (or punic.yml if that exists)
         punic_configuration_path = Path('punic.yaml')
         if not punic_configuration_path.exists():

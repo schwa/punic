@@ -2,10 +2,8 @@ from __future__ import division, absolute_import, print_function
 
 __all__ = ['HTMLFormatter', 'HTMLStripperFormatter']
 
-import logging
 import punic.styling
 import six
-
 
 # TODO: Convert < and > to &lt; and &gt;
 
