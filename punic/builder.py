@@ -19,7 +19,7 @@ from .errors import NoSuchRevision
 from .source_provider import *
 
 
-class Builder:
+class Builder(object):
 
     def __init__(self, session):
         self.session = session

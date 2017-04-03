@@ -84,6 +84,7 @@ class Session(object):
             checkout.prepare()
 
     def make_checkout(self, identifier, revision):
+        # type: (ProjectIdentifier, Revision) -> Checkout
         has_dependencies = len(self.dependencies_for_project_and_tag(identifier, revision)) > 0
         return Checkout(session=self, identifier=identifier, revision=revision, has_dependencies=has_dependencies)
 
