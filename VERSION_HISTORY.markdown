@@ -1,5 +1,11 @@
 # Version History
 
+## 0.2.9
+
+* Updated README to include info on installing punic by homebrew
+* Automatically don't stylize output on CI builds.
+* Improved `punic version` subcommand.
+
 ## 0.2.8
 
 * Ooops. Didn't update __version__.
