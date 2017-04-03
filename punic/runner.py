@@ -32,6 +32,8 @@ class Runner(object):
         try:
             shelf = shelve.open(str(self.cache_path))
             return shelf
+        except KeyboardInterrupt:
+            raise
         except:
             if self.cache_path.exists():
                 logging.info("Resetting cache and trying again...")

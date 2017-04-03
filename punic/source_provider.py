@@ -6,7 +6,7 @@ from punic.errors import *
 from punic.config import config
 
 def unimplemented():
-    raise GenericPunicException("Unimplemented")
+    raise PunicException("Unimplemented")
 
 class SourceProvider(object):
 
@@ -17,7 +17,7 @@ class SourceProvider(object):
         elif identifier.source in ('local', 'root'):
             return LocalSourceProvider(identifier)
         else:
-            raise GenericPunicException("Unknown source: {}".format(identifier.source))
+            raise PunicException("Unknown source: {}".format(identifier.source))
 
 
     class Revision(object):

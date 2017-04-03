@@ -68,7 +68,7 @@ class Resolver(object):
                 if isinstance(obj, Node):
                     return str(obj)
                 else:
-                    raise GenericPunicException("Unknown type: {}".format(type(obj)))
+                    raise PunicException("Unknown type: {}".format(type(obj)))
             # https://networkx.github.io/documentation/networkx-1.10/reference/readwrite.json_graph.html
             j = json_graph.node_link_data(graph, dict(id='id', source='source.id', target='target.id', key='key'))
 

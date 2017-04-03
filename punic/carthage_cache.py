@@ -21,7 +21,7 @@ class CarthageCache(object):
 
         config_path = Path('.carthage_cache.yml')
         if not config_path.exists():
-            raise GenericPunicException('No cache configile at <ref>{}</ref>'.format(config_path))
+            raise PunicException('No cache configile at <ref>{}</ref>'.format(config_path))
 
         d = yaml.safe_load(config_path.open())
 

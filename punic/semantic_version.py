@@ -121,7 +121,7 @@ class SemanticVersion(object):
         if set(d.keys()).issubset({'major', 'minor', 'micro', 'releaselevel', 'serial'}):
             return SemanticVersion(major=d.get('major'), minor=d.get('minor'), patch=d.get('micro'))
         else:
-            raise GenericPunicException('Invalid dict')
+            raise PunicException('Invalid dict')
 
     @classmethod
     def string(cls, s):
@@ -141,20 +141,20 @@ class SemanticVersion(object):
         5.0
         >>> SemanticVersion.string('garbage') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        GenericPunicException: "garbage" not a semantic version.
+        PunicException: "garbage" not a semantic version.
         >>> SemanticVersion.string('v') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        GenericPunicException: "v" not a semantic version.
+        PunicException: "v" not a semantic version.
         >>> SemanticVersion.string('') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        GenericPunicException: "" not a semantic version.
+        PunicException: "" not a semantic version.
         >>> SemanticVersion.string('sync-hackathon-2015-11-09') # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        GenericPunicException: "sync-hackathon-2015-11-09" not a semantic version.
+        PunicException: "sync-hackathon-2015-11-09" not a semantic version.
         """
         match = SemanticVersion.expression.match(s)
         if not match:
-            raise GenericPunicException('"{}" not a semantic version.'.format(s))
+            raise PunicException('"{}" not a semantic version.'.format(s))
         d = match.groupdict()
         major = int(d['major']) if d['major'] else 0
         minor = int(d['minor']) if d['minor'] else 0

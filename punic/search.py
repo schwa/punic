@@ -22,6 +22,8 @@ def menu(prompt, items, formatter=None, default=None):
             try:
                 index = int(s)
                 return items[index - 1]
+            except KeyboardInterrupt:
+                raise
             except:
                 continue
 

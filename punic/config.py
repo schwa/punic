@@ -109,7 +109,7 @@ class Config(object):
     def xcode_version(self, value):
         xcode = Xcode.with_version(value)
         if value and not xcode:
-            raise GenericPunicException('Could not find xcode version: {}'.format(value))
+            raise PunicException('Could not find xcode version: {}'.format(value))
         if not xcode:
             xcode = Xcode.default()
         self.xcode = xcode

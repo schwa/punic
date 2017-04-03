@@ -152,7 +152,7 @@ class Punic(object):
                 except:
                     raise
             else:
-                raise GenericPunicException("Cannot convert spec to revision: {}".format(spec))
+                raise PunicException("Cannot convert spec to revision: {}".format(spec))
 
 
         dependencies = [(spec.identifier, _predicate_to_revision(spec)) for spec in cartfile.specifications]
@@ -259,7 +259,7 @@ class Punic(object):
                 shutil.rmtree(output_product.product_path)
 
             if not device_product.product_path.exists():
-                raise GenericPunicException("No product at: {}".format(device_product.product_path))
+                raise PunicException("No product at: {}".format(device_product.product_path))
 
             shutil.copytree(device_product.product_path, output_product.product_path, symlinks=True)
 

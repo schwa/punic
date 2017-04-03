@@ -3,38 +3,35 @@ from __future__ import division, absolute_import, print_function
 import contextlib
 import logging
 
-class RepositoryNotClonedError(Exception):
+class PunicException(Exception):
     pass
 
+class RepositoryNotClonedError(PunicException):
+    pass
 
-class CartfileNotFound(Exception):
+class CartfileNotFound(PunicException):
     def __init__(self, path):
         self.path = path
 
-
-class PunicRepresentableError(Exception):
+class PunicRepresentableError(PunicException):
     pass
 
-class GenericPunicException(Exception):
+class InvalidCarthageSpecification(PunicException):
     pass
 
-class InvalidCarthageSpecification(Exception):
-    pass
-
-class NoSuchRevision(Exception):
+class NoSuchRevision(PunicException):
     def __init__(self, repository, revision):
         self.repository = repository
         self.revision = revision
         self.message = "No such revision <rev>'{}'</rev> in repository <ref>'{}'</ref>.".format(self.revision, self.repository)
 
-class UnimplementedError(Exception):
+class UnimplementedError(PunicException):
     pass
 
-class DeprecatedError(Exception):
+class DeprecatedError(PunicException):
     pass
 
-
-class XcodeVersionError(Exception):
+class XcodeVersionError(PunicException):
     pass
 
 

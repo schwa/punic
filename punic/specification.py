@@ -51,7 +51,7 @@ class Specification(object):
 
         match = re.match(r'^(?P<address>(?P<service>github|git)\s+"[^/]+/(?:.+?)")(?:\s+(?P<predicate>.+)?)?', string)
         if not match:
-            raise GenericPunicException('Bad spec {}'.format(string))
+            raise PunicException('Bad spec {}'.format(string))
 
         identifier = ProjectIdentifier.string(match.group('address'), use_ssh=use_ssh, overrides=overrides)
         predicate = VersionPredicate(match.group('predicate'))
@@ -93,7 +93,7 @@ class ProjectIdentifier(object):
 
         match = re.match(r'^(?P<source>github|git)\s+"(?P<link>.+)"', string)
         if not match:
-            raise GenericPunicException('No match')
+            raise PunicException('No match')
 
         source = match.group('source')
         link = match.group('link')
@@ -101,7 +101,7 @@ class ProjectIdentifier(object):
         if source == 'github':
             match = re.match(r'^(?P<team_name>[^/]+)/(?P<project_name>[^/]+)$', link)
             if not match:
-                raise GenericPunicException('No match: {}'.format(link))
+                raise PunicException('No match: {}'.format(link))
             team_name = match.group('team_name')
             project_name = match.group('project_name')
 
@@ -136,7 +136,7 @@ class ProjectIdentifier(object):
         elif self.source == 'github':
             return '{} "{}/{}"'.format(self.source, self.team_name, self.project_name)
         else:
-            raise GenericPunicException("Unknown source")
+            raise PunicException("Unknown source")
 
     @mproperty
     def _canonical_identifier(self):
@@ -215,7 +215,7 @@ class VersionPredicate(object):
         else:
             match = re.match(r'(?:(~>|>=|==|)\s+)?(?:"(.+)"|(.+))', string)
             if not match:
-                raise GenericPunicException('No match for: {}'.format(string))
+                raise PunicException('No match for: {}'.format(string))
 
             operator = match.group(1)
             value = match.group(2) if match.group(2) else match.group(3)

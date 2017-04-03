@@ -88,7 +88,7 @@ class Repository(object):
         result = runner.run(command, echo=False, cwd=self.path)
         if result.return_code == 0:
             return result.stdout.strip()
-        raise GenericPunicException('{}: \'{}\' failed with {}'.format(self, command, result))
+        raise PunicException('{}: \'{}\' failed with {}'.format(self, command, result))
 
     def checkout(self, revision):
         # type: (Revision) -> None
@@ -158,6 +158,8 @@ class Repository(object):
 
             try:
                 parsed_revision = self.rev_parse(revision)
+            except KeyboardInterrupt:
+                raise
             except:
                 print("FAILED") # JIWTODO
                 return []
@@ -245,7 +247,7 @@ class Revision(object):
             if result.return_code == 1:
                 return True
             else:
-                raise GenericPunicException('git merge-base returned {} {} {} {} {}'.format(result.return_code, result.stderr, self.repository, other.sha, self.sha))
+                raise PunicException('git merge-base returned {} {} {} {} {}'.format(result.return_code, result.stderr, self.repository, other.sha, self.sha))
 
     def __hash__(self):
         # TODO: Should include repo too?
