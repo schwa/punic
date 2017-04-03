@@ -101,7 +101,7 @@ class Session(object):
         def make(specification):
             source_provider = self._source_provider_for_identifier(specification.identifier)
             tags = source_provider.revisions_for_predicate(specification.predicate)
-            if specification.predicate.operator == VersionOperator.commitish:
+            if specification.predicate.operator == VersionOperator.named:
                 try:
                     revision = Revision(repository=source_provider._repository, revision=specification.predicate.value, revision_type=Revision.Type.commitish, check = True)
                 except NoSuchRevision as e:

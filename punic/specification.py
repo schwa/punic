@@ -47,13 +47,16 @@ class Specification(object):
         git "file:///Users/example/Project"
         >>> Specification.cartfile_string('git "git@gitlab.com:mokagio/punic-cartfile-issue.git" "master"').identifier
         git "git@gitlab.com:mokagio/punic-cartfile-issue.git"
+        >>> Specification.cartfile_string('local "test" "master"')
+        local "test" "master"
         """
 
-        match = re.match(r'^(?P<address>(?P<service>github|git)\s+"[^/]+/(?:.+?)")(?:\s+(?P<predicate>.+)?)?', string)
+        pattern = r'(?P<identifier>{})(?:\s+(?P<predicate>{}))?'.format(ProjectIdentifier.pattern, VersionPredicate.pattern)
+        match = re.match(pattern, string)
         if not match:
-            raise PunicException('Bad spec {}'.format(string))
+            raise PunicException('Specification \'{}\' did not match regular expression'.format(string))
 
-        identifier = ProjectIdentifier.string(match.group('address'), use_ssh=use_ssh, overrides=overrides)
+        identifier = ProjectIdentifier.string(match.group('identifier'), use_ssh=use_ssh, overrides=overrides)
         predicate = VersionPredicate(match.group('predicate'))
         specification = Specification(identifier=identifier, predicate=predicate)
         specification.raw_string = string
@@ -70,6 +73,9 @@ class Specification(object):
 
 @functools.total_ordering
 class ProjectIdentifier(object):
+
+    pattern = r'(?P<source>github|git|local)\s+"(?P<link>[^"]+)"'
+
     @classmethod
     def string(cls, string, use_ssh=False, overrides=None):
         # type: (str, bool, dict) -> ProjectIdentifier
@@ -86,22 +92,26 @@ class ProjectIdentifier(object):
         git "file:///Users/example/Projects/Example-Project"
         >>> ProjectIdentifier.string('git "git@gitlab.com:mokagio/punic-cartfile-issue.git"')
         git "git@gitlab.com:mokagio/punic-cartfile-issue.git"
+        >>> ProjectIdentifier.string('local "/path/to/source"')
+        local "/path/to/source"
         """
 
         assert isinstance(string, six.string_types)
         assert isinstance(use_ssh, bool)
 
-        match = re.match(r'^(?P<source>github|git)\s+"(?P<link>.+)"', string)
+        match = re.match(ProjectIdentifier.pattern, string)
         if not match:
             raise PunicException('No match')
 
         source = match.group('source')
         link = match.group('link')
+        team_name = None
+        project_name = None
 
         if source == 'github':
             match = re.match(r'^(?P<team_name>[^/]+)/(?P<project_name>[^/]+)$', link)
             if not match:
-                raise PunicException('No match: {}'.format(link))
+                raise InvalidCarthageSpecification('No match: {}'.format(link))
             team_name = match.group('team_name')
             project_name = match.group('project_name')
 
@@ -113,6 +123,8 @@ class ProjectIdentifier(object):
             project_name = Path(urlparse.urlparse(link).path).stem
             team_name = None
             project_name = None
+        elif source == 'local':
+            project_name = Path(link).stem
         else:
             raise InvalidCarthageSpecification('No match: {}'.format())
 
@@ -131,12 +143,12 @@ class ProjectIdentifier(object):
 
     @mproperty
     def full_identifier(self):
-        if self.source == 'git':
+        if self.source in ['git', 'local', 'root']:
             return '{} "{}"'.format(self.source, self.link)
         elif self.source == 'github':
             return '{} "{}/{}"'.format(self.source, self.team_name, self.project_name)
         else:
-            raise PunicException("Unknown source")
+            raise PunicException("Unknown source: {}".format(self.source))
 
     @mproperty
     def _canonical_identifier(self):
@@ -189,14 +201,17 @@ class ProjectIdentifier(object):
 
 
 class VersionOperator(Enum):
-    commitish = 'commit-ish'
-    any = '<any>'
+    named = 'named'
+    any = 'any'
     greater_than_or_equals = '>='
     equals = '=='
     semantic_greater_than_or_equals = '~>'
 
 
 class VersionPredicate(object):
+
+    pattern = r'(?:(~>|>=|==|)\s+)?(?:"(.+)"|(.+))'
+
     def __init__(self, string):
         """
         >>> VersionPredicate('"master"')
@@ -213,7 +228,7 @@ class VersionPredicate(object):
             self.operator = VersionOperator.any
             self.value = None
         else:
-            match = re.match(r'(?:(~>|>=|==|)\s+)?(?:"(.+)"|(.+))', string)
+            match = re.match(VersionPredicate.pattern, string)
             if not match:
                 raise PunicException('No match for: {}'.format(string))
 
@@ -230,13 +245,13 @@ class VersionPredicate(object):
                 self.operator = VersionOperator.semantic_greater_than_or_equals
                 self.value = SemanticVersion.string(value)
             else:
-                self.operator = VersionOperator.commitish
+                self.operator = VersionOperator.named
                 self.value = value
 
     def __repr__(self):
         if self.operator == VersionOperator.any:
             return ''
-        if self.operator == VersionOperator.commitish:
+        if self.operator == VersionOperator.named:
             return '"{}"'.format(self.value)
         elif self.operator == VersionOperator.equals:
             return '== {}'.format(self.value)
