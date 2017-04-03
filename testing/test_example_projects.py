@@ -27,6 +27,8 @@ def test_update_and_build():
         with work_directory(project_path):
 
             output = runner.check_run('punic update')
+            output = runner.check_run('punic fetch')
+            output = runner.check_run('punic build')
 
             # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftIO.framework').exists()
             # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftUtilities.framework').exists()

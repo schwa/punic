@@ -29,6 +29,7 @@ from .search import *
 from .styling import styled_print
 from .graph import make_graph
 from .xcode import Xcode
+from .builder import Builder
 
 
 @click.group(cls=DYMGroup)
@@ -162,7 +163,8 @@ def build(context, **kwargs):
 
     with timeit('build'):
         with error_handling():
-            session.build(dependencies=deps)
+            builder = Builder(session)
+            builder.build(dependencies=deps)
 
 
 @punic_cli.command()
@@ -186,7 +188,9 @@ def update(context, **kwargs):
     with timeit('update'):
         with error_handling():
             session.resolve()
-            session.build(dependencies=deps)
+
+            builder = Builder(session)
+            builder.build(dependencies=deps)
 
 
 @punic_cli.command()
@@ -313,7 +317,7 @@ def list(context, **kwargs):
     if not config.build_path.exists():
         config.build_path.mkdir(parents=True)
 
-    filtered_dependencies = punic._ordered_dependencies(name_filter=deps)
+    filtered_dependencies = punic.ordered_dependencies(name_filter=deps)
 
     checkouts = [punic.make_checkout(identifier=node.identifier, revision=node.version) for node in filtered_dependencies]
 
