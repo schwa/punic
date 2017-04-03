@@ -9,8 +9,11 @@ import click
 from click_didyoumean import DYMGroup
 import networkx as nx
 from pathlib2 import Path
+import yaml
 
 import punic
+import punic.shshutil as shutil
+
 from .copy_frameworks import *
 from .errors import *
 from .logger import *
@@ -19,12 +22,14 @@ from .utilities import *
 from .version_check import *
 from .config_init import *
 from .carthage_cache import *
-from punic.graph import make_graph
-import punic.shshutil as shutil
 from punic import *
 from .runner import *
 from .checkout import *
 from .search import *
+from .styling import styled_print
+from .graph import make_graph
+from .xcode import Xcode
+
 
 @click.group(cls=DYMGroup)
 @click.option('--echo', default=False, is_flag=True, help="""Echo all commands to terminal.""")
@@ -76,22 +81,22 @@ def punic_cli(context, echo, verbose, timing, color):
     runner.echo = echo
 
     # Set up punic
-    punic = Punic()
-    punic.config.log_timings = timing
-    context.obj = punic
-    punic.config.verbose = verbose
-    punic.config.echo = verbose
+    session = Session()
+    session.config.log_timings = timing
+    context.obj = session
+    session.config.verbose = verbose
+    session.config.echo = verbose
 
     # Color:
     if color is None:
-        if punic.config.continuous_integration:
+        if session.config.continuous_integration:
             color = False
 
     if color is None:
         color = True
 
 
-    punic.config.color = color
+    session.config.color = color
     formatter.color = color
     logger.color = color
 
@@ -104,13 +109,13 @@ def punic_cli(context, echo, verbose, timing, color):
 def fetch(context, **kwargs):
     """Fetch the project's dependencies.."""
     logging.info("<cmd>fetch</cmd>")
-    punic = context.obj
-    punic.config.fetch = True  # obviously
-    punic.config.update(**kwargs)
+    session = context.obj
+    session.config.fetch = True  # obviously
+    session.config.update(**kwargs)
 
     with timeit('fetch'):
         with error_handling():
-            punic.fetch()
+            session.fetch()
 
 
 @punic_cli.command()
@@ -124,13 +129,13 @@ def resolve(context, **kwargs):
 
     This sub-command does not build dependencies. Use this sub-command when a dependency has changed and you just want to update `Cartfile.resolved`.
     """
-    punic = context.obj
+    session = context.obj
     logging.info("<cmd>Resolve</cmd>")
-    punic.config.update(**kwargs)
+    session.config.update(**kwargs)
 
     with timeit('resolve'):
         with error_handling():
-            punic.resolve(export_diagnostics = kwargs['export_diagnostics'])
+            session.resolve(export_diagnostics = kwargs['export_diagnostics'])
 
 
 @punic_cli.command()
@@ -147,17 +152,17 @@ def resolve(context, **kwargs):
 def build(context, **kwargs):
     """Fetch and build the project's dependencies."""
     logging.info("<cmd>Build</cmd>")
-    punic = context.obj
-    punic.config.update(**kwargs)
+    session = context.obj
+    session.config.update(**kwargs)
 
     deps = kwargs['deps']
 
-    logging.debug('Platforms: {}'.format(punic.config.platforms))
-    logging.debug('Configuration: {}'.format(punic.config.configuration))
+    logging.debug('Platforms: {}'.format(session.config.platforms))
+    logging.debug('Configuration: {}'.format(session.config.configuration))
 
     with timeit('build'):
         with error_handling():
-            punic.build(dependencies=deps)
+            session.build(dependencies=deps)
 
 
 @punic_cli.command()
@@ -173,15 +178,15 @@ def build(context, **kwargs):
 def update(context, **kwargs):
     """Update and rebuild the project's dependencies."""
     logging.info("<cmd>Update</cmd>")
-    punic = context.obj
-    punic.config.update(**kwargs)
+    session = context.obj
+    session.config.update(**kwargs)
 
     deps = kwargs['deps']
 
     with timeit('update'):
         with error_handling():
-            punic.resolve()
-            punic.build(dependencies=deps)
+            session.resolve()
+            session.build(dependencies=deps)
 
 
 @punic_cli.command()
@@ -223,14 +228,14 @@ def clean(context, derived_data, caches, build, all):
 def graph(context, fetch, use_submodules, use_ssh, open):
     """Output resolved dependency graph."""
     logging.info("<cmd>Graph</cmd>")
-    punic = context.obj
-    punic.config.fetch = fetch
+    session = context.obj
+    session.config.fetch = fetch
     if use_submodules:
-        punic.config.use_submodules = use_submodules
+        session.config.use_submodules = use_submodules
     if use_ssh:
-        punic.config.use_ssh = use_ssh
+        session.config.use_ssh = use_ssh
     with timeit('graph'):
-        make_graph(punic, open)
+        make_graph(session, open)
 
 
 @punic_cli.command(name='copy-frameworks')
@@ -249,7 +254,7 @@ def copy_frameworks(context):
 def version(context, check, simple, xcode):
     """Display the current version of Punic."""
 
-    from .styling import styled_print
+    session = context.obj
 
     if simple:
         print("{}".format(punic.__version__))
@@ -257,18 +262,18 @@ def version(context, check, simple, xcode):
 
         styled_print('Punic version: <version>{}</version>'.format(punic.__version__))
 
-        if punic.config.verbose:
+        if session.config.verbose:
             styled_print('Punic path: <ref>{}</ref> '.format(punic.__file__))
 
         sys_version = sys.version_info
         sys_version = SemanticVersion.from_dict(dict(major=sys_version.major, minor=sys_version.minor, micro=sys_version.micro, releaselevel=sys_version.releaselevel, serial=sys_version.serial, ))
         styled_print('Python version: <version>{}</version>'.format(sys_version))
-        if punic.config.verbose:
+        if session.config.verbose:
             styled_print('Python path: <path>{}</path> '.format(sys.executable))
 
-        if xcode or punic.config.verbose:
+        if xcode or session.config.verbose:
             styled_print("Xcode(s):")
-            for xcode in punic.xcode.Xcode.find_all():
+            for xcode in Xcode.find_all():
                 s = '\t<path>{}</path>: <version>{}</version>'.format(xcode.path, xcode.version)
                 if xcode.is_default:
                     s += ' (default)'
@@ -310,7 +315,6 @@ def list(context, **kwargs):
 
     filtered_dependencies = punic._ordered_dependencies(name_filter=deps)
 
-
     checkouts = [punic.make_checkout(identifier=node.identifier, revision=node.version) for node in filtered_dependencies]
 
     tree = {}
@@ -328,7 +332,6 @@ def list(context, **kwargs):
                 schemes = [scheme for scheme in schemes if platform.device_sdk in scheme.supported_platform_names]
                 tree[platform.name][str(checkout.identifier)]['projects'][project.path.name]['schemes'] = [scheme.name for scheme in schemes]
 
-    import yaml
 
     yaml.safe_dump(tree, stream = sys.stdout)
 

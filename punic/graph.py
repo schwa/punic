@@ -5,16 +5,16 @@ import os
 import logging
 import sys
 
-from punic.errors import *
-from punic.utilities import *
-from punic.config import *
-from punic.runner import *
+from .errors import *
+from .utilities import *
+from .config import *
+from .runner import *
 
-def make_graph(punic, open):
+def make_graph(session, open):
     try:
         with error_handling():
 
-            graph = punic.graph()
+            graph = session.graph()
 
             logging.info('Writing graph file to "{}".'.format(os.getcwd()))
             nx.drawing.nx_pydot.write_dot(graph, 'graph.dot')

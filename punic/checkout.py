@@ -4,16 +4,16 @@ import logging
 import itertools
 
 from punic import shshutil as shutil
-from punic.config import config
-from punic.runner import runner
-from punic.xcode import XcodeProject
-from punic.errors import *
+from .config import config
+from .runner import runner
+from .xcode import XcodeProject
+from .errors import *
 
 class Checkout(object):
 
-    def __init__(self, punic, identifier, revision, has_dependencies):
+    def __init__(self, session, identifier, revision, has_dependencies):
         self.identifier = identifier
-        self.source_provider = punic._source_provider_for_identifier(self.identifier)
+        self.source_provider = session._source_provider_for_identifier(self.identifier)
         self.repository = self.source_provider._repository
         self.revision = revision
         self.checkout_path = config.checkouts_path / self.identifier.project_name

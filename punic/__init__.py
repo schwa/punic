@@ -1,7 +1,7 @@
 from __future__ import division, absolute_import, print_function
 
 __version__ = '0.2.9'
-__all__ = ['Punic', 'current_session']
+__all__ = ['Session', 'current_session']
 
 import os
 from copy import copy
@@ -23,8 +23,7 @@ from .source_provider import *
 
 current_session = None
 
-
-class Punic(object):
+class Session(object):
     __slots__ = ['root_path', 'config', 'all_source_providers', 'root_project']
 
     def __init__(self, root_path=None):
@@ -86,7 +85,7 @@ class Punic(object):
 
     def make_checkout(self, identifier, revision):
         has_dependencies = len(self.dependencies_for_project_and_tag(identifier, revision)) > 0
-        return Checkout(punic=self, identifier=identifier, revision=revision, has_dependencies=has_dependencies)
+        return Checkout(session=self, identifier=identifier, revision=revision, has_dependencies=has_dependencies)
 
 
     def build(self, dependencies):

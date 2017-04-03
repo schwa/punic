@@ -153,8 +153,8 @@ class XcodeProject(object):
         return self.info[2]
 
     @property
-    def punic(self):
-        return self.checkout.punic
+    def session(self):
+        return self.checkout.session
 
     @mproperty
     def schemes(self):
@@ -186,7 +186,7 @@ class XcodeProject(object):
             logging.error('<err>Error</err>: Failed to build - result code <echo>{}</echo>'.format(e.returncode))
             logging.error('Command: <echo>{}</echo>'.format(' '.join(e.cmd)))
 
-            project_name = self.checkout.punic.config.root_path.name
+            project_name = self.checkout.session.config.root_path.name
 
             log_path = self.checkout.config.build_log_directory / "{}.log".format(project_name)
             logging.error('xcodebuild log written to <ref>{}</ref>'.format(log_path))
