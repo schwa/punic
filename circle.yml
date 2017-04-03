@@ -9,7 +9,7 @@ dependencies:
     - brew install libyaml
     - brew install python
     - brew install python3
-    - sudo -H pip install -r requirements_test.txt
+    - pip install -r requirements_test.txt
 compile:
   override:
 test:
@@ -17,4 +17,4 @@ test:
     LC_ALL: "en_US.UTF-8"
     LANG: "en_US.UTF-8"
   override:
-    - sudo -H tox --develop
+    - tox
