@@ -50,7 +50,6 @@ class Session(object):
         return Resolver(punic = self, root=Node(self.root_project.identifier, None), dependencies_for_node=self._dependencies_for_node, export_diagnostics = export_diagnostics)
 
     def _dependencies_for_node(self, node):
-        assert not node.version or isinstance(node.version, Revision)
         dependencies = self.dependencies_for_project_and_tag(identifier=node.identifier, tag=node.version)
         return dependencies
 
@@ -61,9 +60,22 @@ class Session(object):
 
         for index, node in enumerate(build_order[:-1]):
             dependency, version = node.identifier, node.version
-            logging.debug('{} <ref>{}</ref> <rev>{}</rev> <ref>{}</ref>'.format(index + 1, dependency, version.revision if version else '', dependency.link))
+            logging.debug('{} <ref>{}</ref> <rev>{}</rev> <ref>{}</ref>'.format(index + 1, dependency, version if version else '', dependency.link))
 
-        specifications = [Specification(identifier=node.identifier, predicate=VersionPredicate('"{}"'.format(node.version.revision))) for node in build_order[:-1]]
+        child_build_order = build_order[:-1]
+
+        def make_spec(node):
+            # TODO:
+
+            source_provider = self._source_provider_for_identifier(node.identifier)
+
+            predicate = source_provider.predicate_for_revision(node.version)
+
+
+            return Specification(identifier=node.identifier, predicate=predicate)
+
+        specifications = [make_spec(node) for node in child_build_order]
+
         logging.debug("<sub>Saving</sub> <ref>Cartfile.resolved</ref>")
 
         cartfile = Cartfile(use_ssh=self.config.use_ssh, specifications=specifications)
@@ -93,7 +105,6 @@ class Session(object):
         # type: (ProjectIdentifier, Revision) -> [ProjectIdentifier, [Revision]]
 
         assert isinstance(identifier, ProjectIdentifier)
-        assert not tag or isinstance(tag, Revision)
 
         source_provider = self._source_provider_for_identifier(identifier)
         specifications = source_provider.specifications_for_revision(tag)
@@ -103,7 +114,7 @@ class Session(object):
             tags = source_provider.revisions_for_predicate(specification.predicate)
             if specification.predicate.operator == VersionOperator.named:
                 try:
-                    revision = Revision(repository=source_provider._repository, revision=specification.predicate.value, revision_type=Revision.Type.commitish, check = True)
+                    revision = source_provider.revision_for_name(name=specification.predicate.value, check = True)
                 except NoSuchRevision as e:
                     logging.warning("<err>Warning</err>: {}".format(e.message))
                     return None
@@ -125,10 +136,9 @@ class Session(object):
 
         def _predicate_to_revision(spec):
             source_provider = self._source_provider_for_identifier(spec.identifier)
-            repository = source_provider._repository
-            if spec.predicate.operator == VersionOperator.commitish:
+            if spec.predicate.operator == VersionOperator.named:
                 try:
-                    return Revision(repository=repository, revision=spec.predicate.value, revision_type=Revision.Type.commitish, check = True)
+                    return source_provider.revision_for_name(name=spec.predicate.value, check = True)
                 except NoSuchRevision as e:
                     logging.warning(e.message)
                     return None
@@ -148,7 +158,7 @@ class Session(object):
         if identifier in self.all_source_providers:
             return self.all_source_providers[identifier]
         else:
-            source_provider = SourceProvider.source_provider_with_identifier(identifier=identifier)
+            source_provider = SourceProvider.source_provider_with_identifier(session = self, identifier=identifier)
             if self.config.fetch:
                 source_provider.fetch()
             self.all_source_providers[identifier] = source_provider

@@ -159,8 +159,6 @@ class Resolver(object):
             parent = Node(identifier, version)
             graph.add_node(parent)
 
-            assert isinstance(version, Revision)
-
             dependencies_for_node = self._dependencies_for_node(Node(identifier, version))
 
             for dependency, _ in dependencies_for_node:
