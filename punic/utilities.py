@@ -7,7 +7,6 @@ import os
 import time
 import logging
 import punic
-import tempfile
 
 @contextlib.contextmanager
 def work_directory(path):
@@ -24,14 +23,6 @@ def work_directory(path):
     finally:
         if saved_wd:
             os.chdir(saved_wd)
-
-@contextlib.contextmanager
-def temp_work_directory():
-    path = tempfile.mkdtemp()
-    with work_directory(path):
-        yield
-
-
 
 
 @contextlib.contextmanager

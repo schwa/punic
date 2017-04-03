@@ -1,0 +1,4 @@
+defaults:
+  configuration: Debug
+  platform: Mac
+  xcode: Xcode 8.2
