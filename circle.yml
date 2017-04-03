@@ -17,6 +17,4 @@ test:
     LC_ALL: "en_US.UTF-8"
     LANG: "en_US.UTF-8"
   override:
-    - which python
-    - env
     - sudo -H tox
