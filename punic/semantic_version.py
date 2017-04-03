@@ -54,10 +54,10 @@ class SemanticVersion(object):
     def __repr__(self):
         components = [self.major, self.minor] + ([self.patch] if self.patch else [])
         components = [str(component) for component in components]
-        repr = '.'.join(components)
+        s = '.'.join(components)
         if len(self.identifiers) >= 1:
-            repr += '-' + '.'.join([str(identifier) for identifier in self.identifiers])
-        return repr
+            s += '-' + '.'.join([str(identifier) for identifier in self.identifiers])
+        return s
 
     def __eq__(self, other):
         """

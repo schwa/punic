@@ -10,7 +10,7 @@ from .utilities import *
 from .config import *
 from .runner import *
 
-def make_graph(session, open):
+def make_graph(session, launch):
     try:
         with error_handling():
 
@@ -23,7 +23,7 @@ def make_graph(session, open):
             if runner.can_run(command):
                 logging.info('Rendering dot file to png file.')
                 runner.check_run(command)
-                if open:
+                if launch:
                     click.launch('graph.png')
             else:
                 logging.warning('graphviz not installed. Cannot convert graph to a png.')

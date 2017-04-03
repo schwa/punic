@@ -106,7 +106,6 @@ class ProjectIdentifier(object):
         source = match.group('source')
         link = match.group('link')
         team_name = None
-        project_name = None
 
         if source == 'github':
             match = re.match(r'^(?P<team_name>[^/]+)/(?P<project_name>[^/]+)$', link)
@@ -122,7 +121,6 @@ class ProjectIdentifier(object):
         elif source == 'git':
             project_name = Path(urlparse.urlparse(link).path).stem
             team_name = None
-            project_name = None
         elif source == 'local':
             project_name = Path(link).stem
         else:

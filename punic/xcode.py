@@ -340,7 +340,7 @@ class XcodeBuildProduct(object):
     @classmethod
     def string(cls, string):
         lines = iter(string.splitlines())
-        matches = (re.match(r'^    (.+) = (.+)$', line) for line in lines)
+        matches = (re.match(r'^ {4}(.+) = (.+)$', line) for line in lines)
         matches = (match.groups() for match in matches if match)
         build_settings = dict(matches)
 
@@ -395,7 +395,7 @@ def _parse_info(string):
             if re.match(r'^\s+Targets:$', line):
                 while True:
                     line = six.next(lines)
-                    match = re.match(r'        (.+)', line)
+                    match = re.match(r' {8}(.+)', line)
                     if not match:
                         break
                     else:
@@ -403,7 +403,7 @@ def _parse_info(string):
             if re.match(r'^\s+Build Configurations:$', line):
                 while True:
                     line = six.next(lines)
-                    match = re.match(r'        (.+)', line)
+                    match = re.match(r' {8}(.+)', line)
                     if not match:
                         break
                     else:
@@ -411,7 +411,7 @@ def _parse_info(string):
             if re.match(r'^\s+Schemes:$', line):
                 while True:
                     line = six.next(lines)
-                    match = re.match(r'        (.+)', line)
+                    match = re.match(r' {8}(.+)', line)
                     if not match:
                         break
                     else:

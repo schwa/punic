@@ -45,8 +45,7 @@ class CarthageCache(object):
 
         resolve_file = Path('Cartfile.resolved').open().read()
         data = '{}{}'.format(resolve_file, swift_version)
-        hash = hashlib.sha256(data).hexdigest()
-        return hash
+        return hashlib.sha256(data).hexdigest()
 
     def archive_name_for_project(self):
         return '{}.zip'.format(self.hash_for_project())
