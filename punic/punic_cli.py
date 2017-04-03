@@ -29,7 +29,7 @@ from .search import *
 @click.group(cls=DYMGroup)
 @click.option('--echo', default=False, is_flag=True, help="""Echo all commands to terminal.""")
 @click.option('--verbose', default=False, is_flag=True, help="""Verbose logging.""")
-@click.option('--color/--no-color', default=True, is_flag=True, help="""TECHNICOLOR.""")
+@click.option('--color/--no-color', default=None, is_flag=True, help="""TECHNICOLOR.""")
 @click.option('--timing/--no-timing', default=False, is_flag=True, help="""Log timing info""")
 @click.pass_context
 def punic_cli(context, echo, verbose, timing, color):
@@ -53,6 +53,7 @@ def punic_cli(context, echo, verbose, timing, color):
     # add ch to logger
     logger.addHandler(stream_handler)
 
+    # TODO: This needs to be a better location
     logs_path = Path('~/Library/Application Support/io.schwa.Punic/Logs').expanduser()
     if not logs_path.exists():
         logs_path.mkdir(parents=True)
@@ -72,8 +73,6 @@ def punic_cli(context, echo, verbose, timing, color):
         named_logger.setLevel(logging.WARNING)
         named_logger.propagate = True
 
-    formatter.color = color
-    logger.color = color
     runner.echo = echo
 
     # Set up punic
@@ -82,6 +81,20 @@ def punic_cli(context, echo, verbose, timing, color):
     context.obj = punic
     punic.config.verbose = verbose
     punic.config.echo = verbose
+
+    # Color:
+    if color is None:
+        if punic.config.continuous_integration:
+            color = False
+
+    if color is None:
+        color = True
+
+
+    punic.config.color = color
+    formatter.color = color
+    logger.color = color
+
 
 
 @punic_cli.command()
@@ -232,17 +245,34 @@ def copy_frameworks(context):
 @click.pass_context
 @click.option('--check/--no-check', default=True, help="""Check for latest version.""")
 @click.option('--simple', is_flag=True, default=False, help="""Only display simple version info. Implies --no-check.""")
-def version(context, check, simple):
+@click.option('--xcode', is_flag=True, default=False, help="""Display xcode versions.""")
+def version(context, check, simple, xcode):
     """Display the current version of Punic."""
+
+    from .styling import styled_print
 
     if simple:
         print("{}".format(punic.__version__))
     else:
-        logging.info('Punic version: {}'.format(punic.__version__))
+
+        styled_print('Punic version: <version>{}</version>'.format(punic.__version__))
+
+        if punic.config.verbose:
+            styled_print('Punic path: <ref>{}</ref> '.format(punic.__file__))
 
         sys_version = sys.version_info
         sys_version = SemanticVersion.from_dict(dict(major=sys_version.major, minor=sys_version.minor, micro=sys_version.micro, releaselevel=sys_version.releaselevel, serial=sys_version.serial, ))
-        logging.info('Python version: {}'.format(sys_version))
+        styled_print('Python version: <version>{}</version>'.format(sys_version))
+        if punic.config.verbose:
+            styled_print('Python path: <path>{}</path> '.format(sys.executable))
+
+        if xcode or punic.config.verbose:
+            styled_print("Xcode(s):")
+            for xcode in punic.xcode.Xcode.find_all():
+                s = '\t<path>{}</path>: <version>{}</version>'.format(xcode.path, xcode.version)
+                if xcode.is_default:
+                    s += ' (default)'
+                    styled_print(s)
 
         if check:
             version_check(verbose=True, timeout=None, failure_is_an_option=False)

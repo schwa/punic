@@ -23,28 +23,36 @@ Punic has been running on a production system for a while now. While bugs probab
 
 ## Installation
 
-Quick install (for [homebrew](http://brew.sh) users):
+### Homebrew (NEW!)
+
+Punic can now be installed via [homebrew](http://brew.sh). This is the *preferred* installation method and does not require installation of any other dependencies. This method is also preferred for continuous integration.
+
+```shell
+$ brew tap schwa/punic
+$ brew install punic
+```
+
+You keep punic up to date using the normal homebrew methods:
 
 ```shell
 $ brew update
-$ brew install python         # or `brew install python3`
+$ brew upgrade
+```
+
+### pypi.python.org
+
+If you're prefer you can also install punic from [pypi] (https://pypi.python.org/pypi/punic/)
+
+```shell
 $ brew install libyaml
 $ pip install punic           # or `pip3 install punic`
 ```
 
-Note: Punic is python 3(.5) compatible and should work the same in both versions of the language.
-
-If you have an error installing punic run pip again with the verbose flag (`pip install --upgrade git+https://github.com/schwa/punic.git`) and create an [issue](https://github.com/schwa/punic/issues).
+Note: Punic is python 3.6 compatible and should work the same in both versions of the language.
 
 Note be careful installing punic (and in fact _all_ python software) with `sudo`. In fact installing with `sudo` is not explicitly supported.
 
 Installing punic inside a python virtualenv is supported but you might have difficulty if you try to execute a virtualenv-ed punic from Xcode (e.g. `punic copy-frameworks`).
-
-## Update Punic
-
-```shell
-$ pip install --upgrade punic # or -U if you're lazy
-```
 
 ## Usage
 
@@ -291,11 +299,20 @@ Swift Package Manager is currently in its very early days and it will be a while
 
 No thank you.
 
-### Why Python and not Swift?
+### How can I use punic with circleci
 
-TODO: ~7000 lines of swift in Carthage (excluding dependencies) vs ~2000 lines of Python in Punic.
-TODO: Batteries included
-TODO: bootstrap problems
+Add the following to your circle.yml file:
+
+```
+machine:
+  xcode:
+    version: 8.3
+dependencies:
+  pre:
+    - brew tap schwa/punic
+    - brew install punic
+    - punic build
+```
 
 ## License
 
