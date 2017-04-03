@@ -51,8 +51,16 @@ A complete list of Carthage compatibility as of version 0.16.2 of Carthage follo
 * Update version numbers
 * Tag
 * Push master
+
+#### Pypi
+
 * python setup.py sdist bdist_wheel
 * twine upload --skip-existing dist/*
+
+#### Homebrew tap
+
+* Use poet to update dependencies. (`pip install homebrew-pypi-poet`)
+* Update: https://github.com/schwa/homebrew-punic
 
 
 ### Notes:
