@@ -255,7 +255,7 @@ Importantly: `carthage bootstrap` has been replaced by `punic build`. See the [F
 
 Aside from differences of implementation one of the fundamental differences is that Carthage always runs `xcodebuild clean` before building dependencies. Punic deliberately does not perform this clean step and provides an explicit `punic clean` command. The goal of this is to not force collaborators to sit through long clean builds when very little has changed. This can provide dramatic speed ups to a users workflow (during testing builds that can take Carthage 20-25 minutes to build on top-end hardware take less than a minute to do a 'dirty' build.)
 
-Punic only supports "github" style dependency specifications and does not support the use of branch names in version specifications.
+Punic only supports "github" style dependency specifications.
 
 For more detailed information see the [Punic documentation](https://github.com/schwa/punic/blob/master/documentation/Notes.markdown).
 
