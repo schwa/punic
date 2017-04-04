@@ -12,6 +12,7 @@ from .errors import *
 class Checkout(object):
 
     def __init__(self, session, identifier, revision, has_dependencies):
+        self.session = session
         self.identifier = identifier
         self.source_provider = session._source_provider_for_identifier(self.identifier)
         self.revision = revision
