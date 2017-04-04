@@ -1,14 +1,12 @@
+import sys
 
 import click
 import networkx as nx
 import os
-import logging
-import sys
 
 from .errors import *
-from .utilities import *
-from .config import *
 from .runner import *
+
 
 def make_graph(session, launch):
     try:

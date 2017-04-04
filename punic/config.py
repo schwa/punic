@@ -4,14 +4,13 @@ __all__ = ['Config', 'config']
 
 from pathlib2 import Path
 import yaml
-import logging
 import os
 import six
 
 from .runner import *
 from .xcode import *
 from .platform import *
-from punic.errors import *
+from .errors import *
 
 # TODO: This all needs to be cleaned up and made more generic. More configs will be added over time and this will only get worse
 # TODO: Allow config file to be relocated and specified on command line

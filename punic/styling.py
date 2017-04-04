@@ -8,6 +8,8 @@ from blessings import Terminal
 import six
 import sys
 
+from .config import config
+
 term = Terminal()
 
 default_styles = {
@@ -53,8 +55,6 @@ class MyHTMLParser(HTMLParser):
         self.s += term.normal
         for style in set(self.style_stack):
             self.s += style
-
-from punic.config import config
 
 def styled(s, style = None, styles = None):
 

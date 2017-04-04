@@ -3,12 +3,6 @@ from __future__ import division, absolute_import, print_function
 __version__ = '0.2.9'
 __all__ = ['Session', 'current_session']
 
-import os
-from copy import copy
-from pathlib2 import Path
-import logging
-from collections import defaultdict
-
 from .cartfile import Cartfile
 from .checkout import Checkout
 from .config import config

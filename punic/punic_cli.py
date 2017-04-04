@@ -2,12 +2,10 @@ from __future__ import division, absolute_import, print_function
 
 __all__ = ['punic_cli', 'main']
 
-import logging
 import logging.handlers
 import sys
 import click
 from click_didyoumean import DYMGroup
-import networkx as nx
 from pathlib2 import Path
 import yaml
 
@@ -15,7 +13,6 @@ import punic
 import punic.shshutil as shutil
 
 from .copy_frameworks import *
-from .errors import *
 from .logger import *
 from .semantic_version import *
 from .utilities import *

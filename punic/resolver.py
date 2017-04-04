@@ -2,15 +2,13 @@ from __future__ import division, absolute_import, print_function
 
 __all__ = ['Resolver', 'Node']
 
-from collections import (defaultdict, namedtuple)
+from collections import (defaultdict)
 from networkx import (DiGraph, dfs_preorder_nodes, topological_sort, number_of_nodes, number_of_edges)
-import logging
 from networkx.readwrite import json_graph
 import json
 import punic
 from .utilities import reveal
-from .repository import *
-from punic.errors import *
+from .errors import *
 
 class Node:
     def __init__(self, identifier, version):

@@ -5,9 +5,7 @@ __all__ = ['Repository', 'Revision']
 from flufl.enum import Enum
 import functools
 import hashlib
-import affirm
 import six
-import logging
 
 from memoize import mproperty
 from pathlib2 import Path

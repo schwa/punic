@@ -3,11 +3,9 @@ from __future__ import division, absolute_import, print_function
 __all__ = ['Xcode', 'XcodeProject', 'uuids_from_binary', 'XcodeBuildProduct', 'XcodeBuildArguments']
 
 import re
-import affirm
 from pathlib2 import Path
 from memoize import mproperty
 import six
-import logging
 
 from .runner import *
 from .semantic_version import *

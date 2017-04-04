@@ -1,19 +1,19 @@
 __all__ = ['CarthageCache']
 
-import re
-import hashlib
-import logging
 import zipfile
+
 import boto
 import boto.s3
+import hashlib
 import os
+import re
 import tempfile
-from tqdm import tqdm
 import yaml
+from tqdm import tqdm
 
-from .shshutil import *
-from .errors import *
 from .config import config
+from .errors import *
+from .shshutil import *
 
 
 class CarthageCache(object):

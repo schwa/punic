@@ -8,7 +8,6 @@ import six
 from flufl.enum import Enum
 from memoize import mproperty
 from pathlib2 import Path
-import logging
 
 from .errors import *
 from .semantic_version import *

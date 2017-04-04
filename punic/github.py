@@ -1,18 +1,18 @@
 __all__ = ['GitHub']
 
-import click
+import shlex
+import subprocess
+
 import requests
+import six
 # from prettytable import PrettyTable
-from pprint import pprint
-from jsonpath_rw import jsonpath, parse
+from jsonpath_rw import parse
 # import csv
 # import iso8601
 # import sys
 # import re
 from memoize import mproperty
-import subprocess
-import shlex
-import six
+
 
 def value(path, json):
     path = parse(path)

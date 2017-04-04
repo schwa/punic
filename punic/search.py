@@ -1,14 +1,12 @@
 __all__ = ['github_search']
 
 import logging
-from pathlib2 import Path
 
-from punic.styling import styled
-from punic.github import *
-from punic.cartfile import *
-from punic.specification import *
+from .cartfile import *
+from .github import *
+from .specification import *
+from .styling import styled
 
-import six
 
 def menu(prompt, items, formatter=None, default=None):
     formatter = formatter or str

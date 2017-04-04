@@ -1,13 +1,12 @@
-import os
-import re
-import logging
 import itertools
 
-from punic import shshutil as shutil
+import os
+import re
+
 from .config import config
-from .runner import runner
-from .xcode import XcodeProject
 from .errors import *
+from .xcode import XcodeProject
+
 
 class Checkout(object):
 
