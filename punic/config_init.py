@@ -37,8 +37,7 @@ def platform_nicknames():
 
 
 def _xcode_versions():
-    Xcode.find_all()
-    return sorted([six.text_type(version) for version in Xcode._all_xcodes.keys()])
+    return sorted([six.text_type(version) for version in Xcode.find_all()])
 
 
 def _prompt(s, items, default=None):
