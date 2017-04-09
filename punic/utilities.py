@@ -1,6 +1,6 @@
 from __future__ import division, absolute_import, print_function
 
-__all__ = ['work_directory', 'timeit', 'deprecated', 'unimplemented']
+__all__ = ['work_directory', 'timeit', 'deprecated', 'unimplemented', 'shorten_path']
 
 import os
 import time
@@ -48,4 +48,16 @@ def timeit(task=None, log=None):
 def reveal(path):
     #type: (Path) -> None
     subprocess.check_call(['open', str(path.parent)])
+
+def shorten_path(path):
+
+    path = path.expanduser()
+
+    if str(path).startswith(str(Path.cwd())):
+        return path.relative_to(Path.cwd())
+
+    if str(path).startswith(str(Path.home())):
+        return Path('~') / path.relative_to(Path.home())
+
+    return path
 

@@ -203,20 +203,20 @@ def clean(context, derived_data, caches, build, all):
 
     with timeit('clean'):
         if build or all:
-            logging.info('Erasing Carthage/Build directory')
+            logging.info('Erasing build directory: <path>{}</path>'.format(shorten_path(punic.config.build_path)))
             if punic.config.build_path.exists():
                 shutil.rmtree(punic.config.build_path)
 
         if derived_data or all:
-            logging.info('Erasing derived data directory')
+            logging.info('Erasing derived data directory: <path>{}</path>'.format(shorten_path(punic.config.derived_data_path)))
             if punic.config.derived_data_path.exists():
                 shutil.rmtree(punic.config.derived_data_path)
 
         if caches or all:
             if punic.config.repo_cache_directory.exists():
-                logging.info('Erasing {}'.format(punic.config.repo_cache_directory))
+                logging.info('Erasing repo cache directory: <path>{}</path>'.format(shorten_path(punic.config.repo_cache_directory)))
                 shutil.rmtree(punic.config.repo_cache_directory)
-            logging.info('Erasing run cache')
+            logging.info('Erasing run cache file: <path>{}</path>'.format(shorten_path(runner.cache_path)))
             runner.reset()
 
 
