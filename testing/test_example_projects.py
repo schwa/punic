@@ -11,29 +11,33 @@ import os
 
 quick_tests_only = bool(int(os.environ.get('QUICK_TEST_ONLY', '0')))
 
-def test_update_and_build():
-    if quick_tests_only:
-        return
+def build(source):
 
-    source = Path(__file__).parent / 'Examples'
-    destination = Path(tempfile.mkdtemp()) / 'Examples'
+
+    destination = Path(tempfile.mkdtemp()) / source.name
 
     shutil.copytree(source, destination)
 
-    project_paths = [path for path in destination.iterdir() if path.is_dir()]
+    with work_directory(destination):
 
-    for project_path in project_paths:
+        output = runner.check_run('punic resolve')
+        output = runner.check_run('punic update')
+        output = runner.check_run('punic fetch')
+        output = runner.check_run('punic build')
 
-        with work_directory(project_path):
+        # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftIO.framework').exists()
+        # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftUtilities.framework').exists()
+        # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftIO.dSYM').exists()
+        # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftUtilities.dSYM').exists()
+        #
+        # output = runner.check_run('punic build')
+        #
 
-            output = runner.check_run('punic update')
-            output = runner.check_run('punic fetch')
-            output = runner.check_run('punic build')
+examples_directory = Path(__file__).parent / 'Examples'
 
-            # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftIO.framework').exists()
-            # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftUtilities.framework').exists()
-            # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftIO.dSYM').exists()
-            # assert (Path.cwd() / 'Carthage/Build/Mac/SwiftUtilities.dSYM').exists()
-            #
-            # output = runner.check_run('punic build')
-            #
+def test_local_1():
+    build(examples_directory / 'local_1')
+
+def test_rx():
+    build(examples_directory / 'rx')
+
