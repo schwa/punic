@@ -24,7 +24,6 @@ def version_check(verbose=False, timeout=0.3, failure_is_an_option=True):
         if current_version < latest_version:
             logging.warning("""You are using version <rev>{}</rev>, version <rev>{}</rev> is available.
             Use <echo>`pip install -U punic`</echo> to update to latest version.""".format(current_version, latest_version))
-    # TODO: Duplicated code
     except requests.exceptions.ReadTimeout as e:
         logging.debug('<error>Failed to check versions')
         if not failure_is_an_option:

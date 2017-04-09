@@ -125,7 +125,6 @@ class Runner(object):
         return_code = popen.returncode
 
         if check and return_code != 0:
-            # TODO
             if stdout:
                 logging.debug(stdout)
             if stderr:
