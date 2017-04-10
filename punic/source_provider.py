@@ -8,6 +8,7 @@ from .specification import *
 import logging
 import punic.shshutil as shutil
 from .runner import *
+from .config import *
 
 def unimplemented():
     raise PunicException("Unimplemented")
@@ -81,7 +82,7 @@ class GitSourceProvider(SourceProvider):
     def checkout(self, revision):
 
         # TODO: Shoudl get this from a checkout object!
-        checkout_path = self.session.config.checkouts_path / self._repository.identifier.project_name
+        checkout_path = config.checkouts_path / self._repository.identifier.project_name
 
         if config.use_submodules:
             relative_checkout_path = checkout_path.relative_to(config.root_path)
@@ -104,8 +105,8 @@ class GitSourceProvider(SourceProvider):
                 logging.debug('Adding submodule for {}'.format(self))
                 runner.check_run(['git', 'submodule', 'add', '--force', self.identifier.remote_url, self.checkout_path.relative_to(config.root_path)])
 
-            # runner.check_run(['git', 'submodule', 'add', '--force', self.identifier.remote_url, self.checkout_path.relative_to(self.config.root_path)])
-            # runner.check_run(['git', 'submodule', 'update', self.checkout_path.relative_to(self.config.root_path)])
+            # runner.check_run(['git', 'submodule', 'add', '--force', self.identifier.remote_url, self.checkout_path.relative_to(config.root_path)])
+            # runner.check_run(['git', 'submodule', 'update', self.checkout_path.relative_to(config.root_path)])
 
             logging.debug('Updating {}'.format(self))
             self._repository.checkout(revision)
@@ -149,7 +150,7 @@ class LocalSourceProvider(SourceProvider):
 
     def fetch(self):
         # TODO: This should not copy to checkouts dir
-        destination = self.session.config.checkouts_path / self.path.stem
+        destination = config.checkouts_path / self.path.stem
 
         if destination.exists():
             shutil.rmtree(destination)

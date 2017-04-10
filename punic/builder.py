@@ -17,32 +17,28 @@ from .xcode import XcodeBuildArguments
 import punic.shshutil as shutil
 from .errors import NoSuchRevision
 from .source_provider import *
-
+from .config import *
 
 class Builder(object):
 
     def __init__(self, session):
         self.session = session
 
-    @property
-    def config(self):
-        return self.session.config
-
     def build(self, dependencies):
         # type: ([str]) -> None
 
-        logging.info('Using xcode version: {}'.format(self.config.xcode))
+        logging.info('Using xcode version: {}'.format(config.xcode))
 
-        configuration, platforms = self.config.configuration, self.config.platforms
+        configuration, platforms = config.configuration, config.platforms
 
-        if not self.config.build_path.exists():
-            self.config.build_path.mkdir(parents=True)
+        if not config.build_path.exists():
+            config.build_path.mkdir(parents=True)
 
         filtered_dependencies = self.session.ordered_dependencies(name_filter=dependencies)
 
         checkouts = [self.session.make_checkout(identifier=node.identifier, revision=node.version) for node in filtered_dependencies]
 
-        skips = self.config.skips
+        skips = config.skips
 
         def filter_dependency(platform, checkout, project, scheme):
             platform = platform.name
@@ -76,20 +72,20 @@ class Builder(object):
 
     def _build_one(self, platform, project, scheme, configuration):
 
-        if self.config.dry_run:
+        if config.dry_run:
             for sdk in platform.sdks:
                 logging.warn('<sub>DRY-RUN: (Not) Building</sub>: <ref>{}</ref> (scheme: {}, sdk: {}, configuration: {})...'.format(project.path.name, scheme, sdk, configuration))
             return
 
         all_products = []
 
-        toolchain = self.config.toolchain
+        toolchain = config.toolchain
 
         # Build device & simulator (if sim exists)
         for sdk in platform.sdks:
             logging.info('<sub>Building</sub>: <ref>{}</ref> (scheme: {}, sdk: {}, configuration: {})...'.format(project.path.name, scheme, sdk, configuration))
 
-            derived_data_path = self.config.derived_data_path
+            derived_data_path = config.derived_data_path
 
             resolved_configuration = configuration if configuration else project.default_configuration
             if not resolved_configuration:
@@ -126,7 +122,7 @@ class Builder(object):
             ########################################################################################################
 
             output_product = copy(device_product)
-            output_product.target_build_dir = self.config.build_path / platform.output_directory_name
+            output_product.target_build_dir = config.build_path / platform.output_directory_name
 
             ########################################################################################################
 

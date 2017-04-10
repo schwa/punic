@@ -9,6 +9,7 @@ import json
 import punic
 from .utilities import reveal
 from .errors import *
+from .config import *
 
 class Node:
     def __init__(self, identifier, version):
@@ -71,7 +72,7 @@ class Resolver(object):
             j = json_graph.node_link_data(graph, dict(id='id', source='source.id', target='target.id', key='key'))
 
 
-            path = (punic.current_session.config.library_directory / "test.json")
+            path = (config.library_directory / "test.json")
             json.dump(j, path.open("wb"), indent=4, default=default)
 
             reveal(path)

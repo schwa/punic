@@ -3,14 +3,10 @@ from __future__ import division, absolute_import, print_function
 __all__ = ['config', 'provide_cli_options', '_config']
 
 from pathlib2 import Path
-import yaml
-import os
 import six
 
-from .runner import *
 from .xcode import *
 from .platform import *
-from .errors import *
 from .defaults import *
 
 # TODO: This all needs to be cleaned up and made more generic. More configs will be added over time and this will only get worse

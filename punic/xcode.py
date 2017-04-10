@@ -10,6 +10,7 @@ import six
 from .runner import *
 from .semantic_version import *
 from .errors import *
+#from .config import * # If we include this we get a circular dependency
 
 class Xcode(object):
     _all_xcodes = None
@@ -184,9 +185,9 @@ class XcodeProject(object):
             logging.error('<err>Error</err>: Failed to build - result code <echo>{}</echo>'.format(e.returncode))
             logging.error('Command: <echo>{}</echo>'.format(' '.join(e.cmd)))
 
-            project_name = self.checkout.session.config.root_path.name
+            project_name = config.root_path.name
 
-            log_path = self.checkout.config.build_log_directory / "{}.log".format(project_name)
+            log_path = config.build_log_directory / "{}.log".format(project_name)
             logging.error('xcodebuild log written to <ref>{}</ref>'.format(log_path))
             log_path.open("w").write(e.output)
 

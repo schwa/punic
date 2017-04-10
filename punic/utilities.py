@@ -9,6 +9,7 @@ import subprocess
 from pathlib2 import Path
 
 from .errors import *
+from .config import *
 
 def deprecated():
     raise DeprecatedError()
@@ -37,7 +38,7 @@ def work_directory(path):
 def timeit(task=None, log=None):
     # type: (Union[str, None], Union[bool, None]) -> None
     if log is None:
-        log = punic.current_session.config.log_timings
+        log = config.log_timings
     start = time.time()
     yield
     end = time.time()

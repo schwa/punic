@@ -6,7 +6,7 @@ from .cartfile import *
 from .github import *
 from .specification import *
 from .styling import styled
-
+from .config import *
 
 def menu(prompt, items, formatter=None, default=None):
     formatter = formatter or str
@@ -59,7 +59,7 @@ def github_search(punic, name, cartfile_append = True, language='swift'):
 
 def append_to_cartfile(punic, repository):
 
-    cartfile_path = punic.config.root_path / 'Cartfile'
+    cartfile_path = config.root_path / 'Cartfile'
     if cartfile_path.exists():
         cartfile = Cartfile()
         specifications = cartfile.read(cartfile_path)

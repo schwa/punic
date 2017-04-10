@@ -28,14 +28,11 @@ class Session(object):
         if not current_session:
             current_session = self
 
-        self.config = config
-        assert(self.config)
+        runner.cache_path = config.runner_cache_path
 
-        runner.cache_path = self.config.runner_cache_path
+        root_project_identifier = ProjectIdentifier(overrides=None, source="root", link=config.root_path, project_name=config.root_path.name)
 
-        root_project_identifier = ProjectIdentifier(overrides=None, source="root", link=self.config.root_path, project_name=self.config.root_path.name)
-
-        self.root_project = Repository(identifier=root_project_identifier, repo_path=self.config.root_path,
+        self.root_project = Repository(identifier=root_project_identifier, repo_path=config.root_path,
                                        is_root_project=True)
 
         self.all_source_providers = {root_project_identifier: self.root_project, }
@@ -72,8 +69,8 @@ class Session(object):
 
         logging.debug("<sub>Saving</sub> <ref>Cartfile.resolved</ref>")
 
-        cartfile = Cartfile(use_ssh=self.config.use_ssh, specifications=specifications)
-        cartfile.write((self.config.cartfile_resolved_path).open('w'))
+        cartfile = Cartfile(use_ssh=config.use_ssh, specifications=specifications)
+        cartfile.write((config.cartfile_resolved_path).open('w'))
 
     def graph(self):
         # type: (bool) -> DiGraph
@@ -81,9 +78,9 @@ class Session(object):
 
     # TODO: This can be deprecated and the fetch flag relied on instead
     def fetch(self, dependencies=None):
-        configuration, platforms = self.config.configuration, self.config.platforms
-        if not self.config.build_path.exists():
-            self.config.build_path.mkdir(parents=True)
+        configuration, platforms = config.configuration, config.platforms
+        if not config.build_path.exists():
+            config.build_path.mkdir(parents=True)
         filtered_dependencies = self.ordered_dependencies(name_filter=dependencies)
         checkouts = [self.make_checkout(identifier=dependency.identifier, revision=dependency.version) for dependency in filtered_dependencies]
         for checkout in checkouts:
@@ -125,8 +122,8 @@ class Session(object):
     def ordered_dependencies(self, name_filter=None):
         # type: (bool, [str]) -> [(ProjectIdentifier, Revision)]
 
-        cartfile = Cartfile(use_ssh=self.config.use_ssh, overrides=config.repo_overrides)
-        cartfile.read(self.config.cartfile_resolved_path)
+        cartfile = Cartfile(use_ssh=config.use_ssh, overrides=config.repo_overrides)
+        cartfile.read(config.cartfile_resolved_path)
 
         def _predicate_to_revision(spec):
             source_provider = self._source_provider_for_identifier(spec.identifier)
@@ -153,7 +150,7 @@ class Session(object):
             return self.all_source_providers[identifier]
         else:
             source_provider = SourceProvider.source_provider_with_identifier(session = self, identifier=identifier)
-            if self.config.fetch:
+            if config.fetch:
                 source_provider.fetch()
             self.all_source_providers[identifier] = source_provider
             return source_provider

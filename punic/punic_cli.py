@@ -100,7 +100,7 @@ def fetch(context, **kwargs):
     """Fetch the project's dependencies.."""
     logging.info("<cmd>fetch</cmd>")
     session = context.obj
-    session.config.fetch = True  # obviously
+    config.fetch = True  # obviously
     provide_cli_options(**kwargs)
 
     with timeit('fetch'):
@@ -147,8 +147,8 @@ def build(context, **kwargs):
 
     deps = kwargs['deps']
 
-    logging.debug('Platforms: {}'.format(session.config.platforms))
-    logging.debug('Configuration: {}'.format(session.config.configuration))
+    logging.debug('Platforms: {}'.format(config.platforms))
+    logging.debug('Configuration: {}'.format(config.configuration))
 
     with timeit('build'):
         with error_handling():
@@ -195,19 +195,19 @@ def clean(context, derived_data, caches, build, all):
 
     with timeit('clean'):
         if build or all:
-            logging.info('Erasing build directory: <path>{}</path>'.format(shorten_path(punic.config.build_path)))
-            if punic.config.build_path.exists():
-                shutil.rmtree(punic.config.build_path)
+            logging.info('Erasing build directory: <path>{}</path>'.format(shorten_path(config.build_path)))
+            if config.build_path.exists():
+                shutil.rmtree(config.build_path)
 
         if derived_data or all:
-            logging.info('Erasing derived data directory: <path>{}</path>'.format(shorten_path(punic.config.derived_data_path)))
-            if punic.config.derived_data_path.exists():
-                shutil.rmtree(punic.config.derived_data_path)
+            logging.info('Erasing derived data directory: <path>{}</path>'.format(shorten_path(config.derived_data_path)))
+            if config.derived_data_path.exists():
+                shutil.rmtree(config.derived_data_path)
 
         if caches or all:
-            if punic.config.repo_cache_directory.exists():
-                logging.info('Erasing repo cache directory: <path>{}</path>'.format(shorten_path(punic.config.repo_cache_directory)))
-                shutil.rmtree(punic.config.repo_cache_directory)
+            if config.repo_cache_directory.exists():
+                logging.info('Erasing repo cache directory: <path>{}</path>'.format(shorten_path(config.repo_cache_directory)))
+                shutil.rmtree(config.repo_cache_directory)
             logging.info('Erasing run cache file: <path>{}</path>'.format(shorten_path(runner.cache_path)))
             runner.reset()
 
@@ -222,11 +222,11 @@ def graph(context, fetch, use_submodules, use_ssh, open):
     """Output resolved dependency graph."""
     logging.info("<cmd>Graph</cmd>")
     session = context.obj
-    session.config.fetch = fetch
+    config.fetch = fetch
     if use_submodules:
-        session.config.use_submodules = use_submodules
+        config.use_submodules = use_submodules
     if use_ssh:
-        session.config.use_ssh = use_ssh
+        config.use_ssh = use_ssh
     with timeit('graph'):
         make_graph(session, open)
 
@@ -254,16 +254,16 @@ def version(context, check, simple, xcode):
     else:
         styled_print('Punic version: <version>{}</version>'.format(punic.__version__))
 
-        if session.config.verbose:
+        if config.verbose:
             styled_print('Punic path: <ref>{}</ref> '.format(punic.__file__))
 
         sys_version = sys.version_info
         sys_version = SemanticVersion.from_dict(dict(major=sys_version.major, minor=sys_version.minor, micro=sys_version.micro, releaselevel=sys_version.releaselevel, serial=sys_version.serial, ))
         styled_print('Python version: <version>{}</version>'.format(sys_version))
-        if session.config.verbose:
+        if config.verbose:
             styled_print('Python path: <path>{}</path> '.format(sys.executable))
 
-        if xcode or session.config.verbose:
+        if xcode or config.verbose:
             styled_print("Xcode(s):")
             for xcode in Xcode.find_all():
                 s = '\t<path>{}</path>: <version>{}</version>'.format(xcode.path, xcode.version)
@@ -297,8 +297,6 @@ def list(context, **kwargs):
     punic = context.obj
     provide_cli_options(**kwargs)
     deps = kwargs['deps']
-
-    config = punic.config
 
     configuration, platforms = config.configuration, config.platforms
 
@@ -354,7 +352,7 @@ def publish(context, xcode_version, force):
         logging.info("<cmd>Cache Publish</cmd>")
         punic = context.obj
         if xcode_version:
-            punic.config.xcode = Xcode.with_version(xcode_version)
+            config.xcode = Xcode.with_version(xcode_version)
         carthage_cache = CarthageCache(config=punic.config)
         logging.info("Cache filename: <ref>'{}'</ref>".format(carthage_cache.archive_name_for_project()))
         carthage_cache.publish(force = force)
@@ -370,7 +368,7 @@ def install(context, xcode_version):
         logging.info("<cmd>Cache Install</cmd>")
         punic = context.obj
         if xcode_version:
-            punic.config.xcode = Xcode.with_version(xcode_version)
+            config.xcode = Xcode.with_version(xcode_version)
         carthage_cache = CarthageCache(config=punic.config)
         logging.info("Cache filename: <ref>'{}'</ref>".format(carthage_cache.archive_name_for_project()))
         carthage_cache.install()
