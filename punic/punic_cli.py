@@ -27,22 +27,39 @@ from .styling import styled_print
 from .graph import make_graph
 from .xcode import Xcode
 from .builder import Builder
+from .config import *
 
 
 @click.group(cls=DYMGroup)
-@click.option('--echo', default=False, is_flag=True, help="""Echo all commands to terminal.""")
-@click.option('--verbose', default=False, is_flag=True, help="""Verbose logging.""")
+@click.option('--echo', default=None, is_flag=True, help="""Echo all commands to terminal.""")
+@click.option('--verbose', default=None, is_flag=True, help="""Verbose logging.""")
 @click.option('--color/--no-color', default=None, is_flag=True, help="""TECHNICOLOR.""")
-@click.option('--timing/--no-timing', default=False, is_flag=True, help="""Log timing info""")
+@click.option('--timing/--no-timing', default=None, is_flag=True, help="""Log timing info""")
 @click.pass_context
 def punic_cli(context, echo, verbose, timing, color):
     ### TODO: Clean this up!
 
+    provide_cli_options(echo=echo, verbose=verbose, log_timings=timing, color=color)
+
     # Configure click
     context.token_normalize_func = lambda x: x if not x else x.lower()
 
+    # Color:
+    if color is None and config.continuous_integration:
+        config.color = False
+
+    configure_logging()
+
+    runner.echo = echo
+
+    # Set up punic
+    session = Session()
+    context.obj = session
+
+
+def configure_logging():
     # Configure logging
-    level = logging.DEBUG if verbose else logging.INFO
+    level = logging.DEBUG if config.verbose else logging.INFO
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -56,12 +73,8 @@ def punic_cli(context, echo, verbose, timing, color):
     # add ch to logger
     logger.addHandler(stream_handler)
 
-    # TODO: This needs to be a better location
-    logs_path = Path('~/Library/Application Support/io.schwa.Punic/Logs').expanduser()
-    if not logs_path.exists():
-        logs_path.mkdir(parents=True)
-
-    log_path = logs_path / "punic.log"
+    ensure_directory_exists(config.logs_path)
+    log_path = config.logs_path / "punic.log"
     needs_rollover = log_path.exists()
 
     file_handler = logging.handlers.RotatingFileHandler(str(log_path), backupCount=4)
@@ -76,28 +89,7 @@ def punic_cli(context, echo, verbose, timing, color):
         named_logger.setLevel(logging.WARNING)
         named_logger.propagate = True
 
-    runner.echo = echo
-
-    # Set up punic
-    session = Session()
-    session.config.log_timings = timing
-    context.obj = session
-    session.config.verbose = verbose
-    session.config.echo = verbose
-
-    # Color:
-    if color is None:
-        if session.config.continuous_integration:
-            color = False
-
-    if color is None:
-        color = True
-
-
-    session.config.color = color
-    formatter.color = color
-    logger.color = color
-
+    formatter.color = config.color
 
 
 @punic_cli.command()
@@ -109,7 +101,7 @@ def fetch(context, **kwargs):
     logging.info("<cmd>fetch</cmd>")
     session = context.obj
     session.config.fetch = True  # obviously
-    session.config.update(**kwargs)
+    provide_cli_options(**kwargs)
 
     with timeit('fetch'):
         with error_handling():
@@ -129,7 +121,7 @@ def resolve(context, **kwargs):
     """
     session = context.obj
     logging.info("<cmd>Resolve</cmd>")
-    session.config.update(**kwargs)
+    provide_cli_options(**kwargs)
 
     with timeit('resolve'):
         with error_handling():
@@ -151,7 +143,7 @@ def build(context, **kwargs):
     """Fetch and build the project's dependencies."""
     logging.info("<cmd>Build</cmd>")
     session = context.obj
-    session.config.update(**kwargs)
+    provide_cli_options(**kwargs)
 
     deps = kwargs['deps']
 
@@ -178,7 +170,7 @@ def update(context, **kwargs):
     """Update and rebuild the project's dependencies."""
     logging.info("<cmd>Update</cmd>")
     session = context.obj
-    session.config.update(**kwargs)
+    provide_cli_options(**kwargs)
 
     deps = kwargs['deps']
 
@@ -260,7 +252,6 @@ def version(context, check, simple, xcode):
     if simple:
         print("{}".format(punic.__version__))
     else:
-
         styled_print('Punic version: <version>{}</version>'.format(punic.__version__))
 
         if session.config.verbose:
@@ -304,7 +295,7 @@ def readme(context):
 def list(context, **kwargs):
     """Lists all platforms, projects, xcode projects, schemes for all dependencies."""
     punic = context.obj
-    punic.config.update(**kwargs)
+    provide_cli_options(**kwargs)
     deps = kwargs['deps']
 
     config = punic.config
@@ -363,7 +354,7 @@ def publish(context, xcode_version, force):
         logging.info("<cmd>Cache Publish</cmd>")
         punic = context.obj
         if xcode_version:
-            punic.config.xcode_version = xcode_version
+            punic.config.xcode = Xcode.with_version(xcode_version)
         carthage_cache = CarthageCache(config=punic.config)
         logging.info("Cache filename: <ref>'{}'</ref>".format(carthage_cache.archive_name_for_project()))
         carthage_cache.publish(force = force)
@@ -379,7 +370,7 @@ def install(context, xcode_version):
         logging.info("<cmd>Cache Install</cmd>")
         punic = context.obj
         if xcode_version:
-            punic.config.xcode_version = xcode_version
+            punic.config.xcode = Xcode.with_version(xcode_version)
         carthage_cache = CarthageCache(config=punic.config)
         logging.info("Cache filename: <ref>'{}'</ref>".format(carthage_cache.archive_name_for_project()))
         carthage_cache.install()
@@ -399,4 +390,10 @@ def search(context, name, append, language):
 
 
 def main():
-    punic_cli()
+    try:
+        punic_cli()
+    except SystemExit:
+        if _config.get('DEBUG', False):
+            _config.dump()
+        raise
+

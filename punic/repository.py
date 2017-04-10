@@ -22,6 +22,7 @@ from .errors import *
 from .cartfile import *
 from .semantic_version import *
 from .errors import NoSuchRevision
+from .utilities import *
 
 
 class Repository(object):
@@ -29,6 +30,7 @@ class Repository(object):
         self.identifier = identifier
         if repo_path:
             self.path = repo_path
+
         else:
             remote_url = self.identifier.link.encode("utf-8")
             url_hash = hashlib.md5(remote_url).hexdigest()
@@ -102,7 +104,7 @@ class Repository(object):
 
     def fetch(self):
         if not self.path.exists():
-            logging.debug('<sub>Cloning</sub>: <ref>{}</ref>'.format(self))
+            logging.info('<sub>Cloning</sub>: <ref>{}</ref>'.format(self))
 
             url = self.identifier.link
 
@@ -111,6 +113,8 @@ class Repository(object):
                 repo = parsed_url.path
             else:
                 repo = url
+
+            ensure_directory_exists(self.path.parent)
 
             runner.check_run('git clone --recursive --recurse-submodules "{}" "{}"'.format(repo, self.path), cwd=self.path.parent)
         else:

@@ -5,7 +5,7 @@ __all__ = ['Session', 'current_session']
 
 from .cartfile import Cartfile
 from .checkout import Checkout
-from .config import config
+from .config import *
 from .repository import Repository, Revision
 from .resolver import Resolver, Node
 from .runner import runner
@@ -21,7 +21,7 @@ current_session = None
 class Session(object):
     __slots__ = ['root_path', 'config', 'all_source_providers', 'root_project']
 
-    def __init__(self, root_path=None):
+    def __init__(self):
 
         global current_session
 
@@ -29,9 +29,9 @@ class Session(object):
             current_session = self
 
         self.config = config
+        assert(self.config)
 
-        if root_path:
-            self.config.root_path = root_path
+        runner.cache_path = self.config.runner_cache_path
 
         root_project_identifier = ProjectIdentifier(overrides=None, source="root", link=self.config.root_path, project_name=self.config.root_path.name)
 
@@ -73,7 +73,7 @@ class Session(object):
         logging.debug("<sub>Saving</sub> <ref>Cartfile.resolved</ref>")
 
         cartfile = Cartfile(use_ssh=self.config.use_ssh, specifications=specifications)
-        cartfile.write((self.config.root_path / 'Cartfile.resolved').open('w'))
+        cartfile.write((self.config.cartfile_resolved_path).open('w'))
 
     def graph(self):
         # type: (bool) -> DiGraph
@@ -126,7 +126,7 @@ class Session(object):
         # type: (bool, [str]) -> [(ProjectIdentifier, Revision)]
 
         cartfile = Cartfile(use_ssh=self.config.use_ssh, overrides=config.repo_overrides)
-        cartfile.read(self.config.root_path / 'Cartfile.resolved')
+        cartfile.read(self.config.cartfile_resolved_path)
 
         def _predicate_to_revision(spec):
             source_provider = self._source_provider_for_identifier(spec.identifier)

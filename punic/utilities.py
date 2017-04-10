@@ -1,6 +1,6 @@
 from __future__ import division, absolute_import, print_function
 
-__all__ = ['work_directory', 'timeit', 'deprecated', 'unimplemented', 'shorten_path']
+__all__ = ['work_directory', 'timeit', 'deprecated', 'unimplemented', 'shorten_path', 'ensure_directory_exists']
 
 import os
 import time
@@ -61,3 +61,9 @@ def shorten_path(path):
 
     return path
 
+
+def ensure_directory_exists(path):
+    if path.exists() == False:
+        path.mkdir(parents=True)
+    if not path.is_dir():
+        raise PunicException('No such directory at {}'.format(path))

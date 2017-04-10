@@ -43,7 +43,7 @@ def error_handling():
         logging.error('<err>Error</err>: No locally cloned repository found. Did you neglect to run `punic fetch` first?')
         exit(-1)
     except CartfileNotFound as e:
-        logging.error('<err>Error</err>: No Cartfile found at path: <ref>{}</ref>'.format(e.path))
+        logging.error('<err>Error</err>: No Cartfile found at path: <ref>{}</ref>. Did you neglect to run `punic resolve` first?'.format(e.path))
         exit(-1)
     except NoSuchRevision as e:
         logging.error('<err>Error</err>: No such revision {} found in repository {}'.format(e.revision, e.repository))

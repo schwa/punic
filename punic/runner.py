@@ -24,12 +24,16 @@ class Runner(object):
         self.echo_directories = echo_directories
         self.extra_env = extra_env
 
-    @mproperty
+    @property
     def shelf(self):
         if not self.cache_path:
             return None
         # noinspection PyBroadException
         try:
+            if self.cache_path.parent.exists() == False:
+                self.cache_path.parent.mkdir(parents = True)
+
+
             shelf = shelve.open(str(self.cache_path))
             return shelf
         except KeyboardInterrupt:
@@ -85,7 +89,7 @@ class Runner(object):
             # TODO: Wont properly reproduce command if command is a string
             logging.info(' '.join(arg.replace(' ', '\\ ') for arg in args))
 
-        if cache_key:
+        if self.shelf and cache_key:
             # assert not env # TODO
             key = '{}{}'.format(cache_key, ' '.join(command))
             if key in self.shelf:
@@ -133,7 +137,8 @@ class Runner(object):
 
         if cache_key:
             key = '{}{}'.format(cache_key, ' '.join(command))
-            self.shelf[key] = return_code, stdout, stderr
+            if self.shelf:
+                self.shelf[key] = return_code, stdout, stderr
 
         result = Result()
         result.return_code = return_code

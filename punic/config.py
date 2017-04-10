@@ -1,6 +1,6 @@
 from __future__ import division, absolute_import, print_function
 
-__all__ = ['Config', 'config']
+__all__ = ['config', 'provide_cli_options', '_config']
 
 from pathlib2 import Path
 import yaml
@@ -11,132 +11,137 @@ from .runner import *
 from .xcode import *
 from .platform import *
 from .errors import *
+from .defaults import *
 
 # TODO: This all needs to be cleaned up and made more generic. More configs will be added over time and this will only get worse
 # TODO: Allow config file to be relocated and specified on command line
 # TODO: Allow subcommands to easily override configs
 
-class Config(object):
-    def __init__(self):
-        self.xcode = None
-        self.repo_overrides = dict()
+cli_options = dict()
 
-        self.root_path = Path.cwd()  # type: Path
 
-        self.library_directory = Path('~/Library/Application Support/io.schwa.Punic').expanduser()
-        if not self.library_directory.exists():
-            self.library_directory.mkdir(parents=True)
-        self.repo_cache_directory = self.library_directory / 'repo_cache'
-        if not self.repo_cache_directory.exists():
-            self.repo_cache_directory.mkdir(parents=True)
-        self.punic_path = self.root_path / 'Carthage'
-        self.build_path = self.punic_path / 'Build'
-        self.checkouts_path = self.punic_path / 'Checkouts'
+def better_bool(value):
+    if isinstance(value, bool):
+        return value
+    elif isinstance(value, int):
+        return bool(value)
+    elif isinstance(value, str):
+        value = value.strip()
+        if value.lower() in ('1', 'true', 'yes'):
+            return True
+        elif value.lower() in ('0', 'false', 'no'):
+            return False
+    raise TypeError(value)
 
-        self.build_log_directory = Path('~/Library/Logs/Punic/Builds').expanduser()
-        if not self.build_log_directory.exists():
-            self.build_log_directory.mkdir(parents=True)
 
-        self.derived_data_path = self.library_directory / "DerivedData"
+def make_config():
+    config = Defaults()
 
-        self.platforms = Platform.all
-        self.configuration = None
+    type_converters = dict(
+        build_log_directory=Path,
+        build_path=Path,
+        checkouts_path=Path,
+        CI=better_bool,
+        DEBUG=better_bool,
+        derived_data_path=Path,
+        library_directory=Path,
+        punic_path=Path,
+        repo_cache_directory=Path,
+        root_path=Path,
+    )
+    config.type_converters = type_converters
 
-        self.fetch = False
-        self.xcode = Xcode.default()
+    providers = []
 
-        self.toolchain = None
-        self.dry_run = False
-        self.use_submodules = False
-        self.use_ssh = False
+    registration_provider = dict(
+        color=True,
+        configuration=None,
+        DEBUG=False,
+        dry_run=False,
+        echo=False,
+        fetch=False,
+        library_directory=Path('~/Library/Application Support/io.schwa.Punic').expanduser(),
+        logs_path=Path('~/Library/Logs/Punic').expanduser(),
+        platform=None,
+        repo_overrides=dict(),
+        root_path=Path.cwd(),
+        skips=[],
+        toolchain=None,
+        use_ssh=False,
+        use_submodules=False,
+        verbose=False,
+        xcode=Xcode.default(),
+    )
 
-        self.skips = []
+    local_provider = {}
+    if Path('punic.yaml').exists():
+        local_provider = YAMLFileDefaultsProvider(Path('punic.yaml'), prefix_key='defaults')
 
-        self.verbose = False
-        self.echo = False
+    o = config.obj
+    lambdas = dict(
+        build_log_directory =    lambda _: o.logs_path / 'Build',
+        build_path =             lambda _: o.punic_path / 'Build',
+        cartfile_resolved_path = lambda _: o.root_path / 'Cartfile.resolved',
+        checkouts_path =         lambda _: o.punic_path / 'Checkouts',
+        continuous_integration = lambda _: 'CI' in config,
+        derived_data_path =      lambda _: config.obj.library_directory / 'DerivedData',
+        platforms =              lambda _: parse_platforms(config.obj.platform),
+        punic_path =             lambda _: o.root_path / 'Carthage',
+        repo_cache_directory =   lambda _: o.library_directory / 'repo_cache',
+        runner_cache_path =      lambda _: o.library_directory / 'cache.shelf',
+    )
+    lambdas = LambdaDefaultsProvider(lambdas, o)
 
-        self.continuous_integration = 'CI' in os.environ
-        if self.continuous_integration:
-            logging.info("Running on continuous integration")
+    config.providers = [
+        ('synthetic', lambdas),
+        ('registration', registration_provider),
+        ('environ', EnvironDefaultsProvider()),
+        ('cli', cli_options),
+        ('local_provider', local_provider),
+        ('memory_store', config.memory_store),
+    ]
 
-        # Read in defaults from punic.yaml (or punic.yml if that exists)
-        punic_configuration_path = Path('punic.yaml')
-        if not punic_configuration_path.exists():
-            punic_configuration_path = Path('punic.yml')
-        if punic_configuration_path.exists():
-            self.read(punic_configuration_path)
-        runner.cache_path = self.library_directory / "cache.shelf"
+    return config
 
-    def update(self, **kwargs):
-        for key, value in sorted(kwargs.items()):
-            if value:
-                if hasattr(self, key):
-                    setattr(self, key, value)
 
-        # Special case for platforms
-        platform = kwargs['platform'] if 'platform' in kwargs else None
-        if platform:
-            self.platforms = parse_platforms(platform)
+def provide_cli_options(**kwargs):
+    xcode_version = kwargs.get('xcode_version', None)
+    if xcode_version:
+        kwargs['xcode'] = Xcode.with_version(kwargs['xcode_version'])
+    if 'xcode_version' in kwargs:
+        del kwargs['xcode_version']
 
-        if self.verbose and os.environ.get('DUMP_CONFIG', False):
-            self.dump()
+    global cli_options
+    cli_options.update(dict((key, value) for key, value in kwargs.items() if value is not None))
 
-    def dump(self):
 
-        logging.info('# Environment ##' + '#' * 64)
+#        runner.cache_path = self.library_directory / "cache.shelf"
 
-        logging.info('CWD: {}'.format(os.getcwd()))
+# def read(self, path):
+#     # type: (Path) -> None
+#
+#     d = yaml.safe_load(path.open())
+#     if not d:
+#         return
+#     if 'defaults' in d:
+#         defaults = d['defaults']
+#         if 'configuration' in defaults:
+#             self.configuration = defaults['configuration']
+#         if 'platforms' in defaults:
+#             self.platforms = parse_platforms(defaults['platforms'])
+#         elif 'platform' in defaults:
+#             self.platforms = parse_platforms(defaults['platform'])
+#         if 'xcode-version' in defaults:
+#             self.xcode_version = six.text_type(defaults['xcode-version'])
+#
+#         if 'use-ssh' in defaults:
+#             self.use_ssh = defaults['use-ssh']
+#
+#     if 'repo-overrides' in d:
+#         self.repo_overrides = d['repo-overrides']
+#
+#     if 'skips' in d:
+#         self.skips = d['skips'] or []
 
-        key_width = max([len(k) for k in os.environ.keys()] + [len(k) for k in self.__dict__.items()])
-
-        os.environ.keys()
-
-        for key, value in sorted(os.environ.items()):
-            logging.info('{:{key_width}}: {}'.format(key, value, key_width = key_width + 1))
-
-        logging.info('# Configuration ' + '#' * 64)
-
-        for key, value in sorted(self.__dict__.items()):
-            logging.info('{:{key_width}}: {}'.format(key, value, key_width = key_width + 1))
-        logging.info('#' * 80)
-
-    @property
-    def xcode_version(self):
-        return self.xcode.version if self.xcode else None
-
-    @xcode_version.setter
-    def xcode_version(self, value):
-        xcode = Xcode.with_version(value)
-        if value and not xcode:
-            raise PunicException('Could not find xcode version: {}'.format(value))
-        if not xcode:
-            xcode = Xcode.default()
-        self.xcode = xcode
-
-    def read(self, path):
-        # type: (Path) -> None
-
-        d = yaml.safe_load(path.open())
-        if not d:
-            return
-        if 'defaults' in d:
-            defaults = d['defaults']
-            if 'configuration' in defaults:
-                self.configuration = defaults['configuration']
-            if 'platforms' in defaults:
-                self.platforms = parse_platforms(defaults['platforms'])
-            elif 'platform' in defaults:
-                self.platforms = parse_platforms(defaults['platform'])
-            if 'xcode-version' in defaults:
-                self.xcode_version = six.text_type(defaults['xcode-version'])
-
-            if 'use-ssh' in defaults:
-                self.use_ssh = defaults['use-ssh']
-
-        if 'repo-overrides' in d:
-            self.repo_overrides = d['repo-overrides']
-
-        if 'skips' in d:
-            self.skips = d['skips'] or []
-
-config = Config()
+_config = make_config()
+config = _config.obj

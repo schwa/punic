@@ -2,6 +2,7 @@ from __future__ import division, absolute_import, print_function
 
 __all__ = ['Platform', 'parse_platforms']
 
+from .errors import *
 
 class Platform(object):
     all = []
@@ -37,9 +38,14 @@ Platform.all = [
 ]
 
 
-def parse_platforms(s):
+def parse_platforms(platforms):
     # type: (str) -> [Platform]
-    if not s:
+
+    if not platforms:
         return Platform.all
     else:
-        return [Platform.platform_for_nickname(platform.strip()) for platform in s.split(',')]
+        platforms = [platform.strip() for platform in platforms.split(',')]
+        platforms = [Platform.platform_for_nickname(platform) for platform in platforms]
+        return platforms
+    raise PunicException('Cannot parse platforms')
+
