@@ -10,7 +10,6 @@ import six
 from .runner import *
 from .semantic_version import *
 from .errors import *
-#from .config import * # If we include this we get a circular dependency
 
 class Xcode(object):
     _all_xcodes = None
@@ -182,17 +181,13 @@ class XcodeProject(object):
         try:
             self.check_call(subcommand='build', arguments=arguments)
         except CalledProcessError as e:
-            logging.error('<err>Error</err>: Failed to build - result code <echo>{}</echo>'.format(e.returncode))
-            logging.error('Command: <echo>{}</echo>'.format(' '.join(e.cmd)))
-
-            project_name = config.root_path.name
-
-            log_path = config.build_log_directory / "{}.log".format(project_name)
-            logging.error('xcodebuild log written to <ref>{}</ref>'.format(log_path))
-            log_path.open("w").write(e.output)
-
-            #logging.error(e.output)
-            exit(e.returncode)
+            build_failure = BuildFailure()
+            build_failure.returncode = e.returncode
+            build_failure.cmd = ' '.join(e.cmd)
+            build_failure.project = path
+            build_failure.output = e.output
+            build_failure.underlying_error = e
+            raise build_failure
 
         build_settings = self.build_settings(arguments=arguments)
         scheme = self.scheme_named(arguments.scheme)

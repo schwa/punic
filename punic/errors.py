@@ -34,6 +34,11 @@ class DeprecatedError(PunicException):
 class XcodeVersionError(PunicException):
     pass
 
+class BuildFailure(PunicException):
+    pass
+
+
+
 
 @contextlib.contextmanager
 def error_handling():

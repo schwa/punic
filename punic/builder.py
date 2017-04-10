@@ -93,7 +93,21 @@ class Builder(object):
 
             arguments = XcodeBuildArguments(scheme=scheme, configuration=resolved_configuration, sdk=sdk, toolchain=toolchain, derived_data_path=derived_data_path)
 
-            all_products += project.build(arguments=arguments)
+            try:
+                all_products += project.build(arguments=arguments)
+            except BuildFailure as e:
+
+                logging.error('<err>Error</err>: Failed to build - result code <echo>{}</echo>'.format(e.returncode))
+                logging.error('Command: <echo>{}</echo>'.format(e.cmd))
+
+                project_name = config.root_path.name
+
+                log_path = config.build_log_directory / "{}.log".format(project_name)
+                logging.error('xcodebuild log written to <ref>{}</ref>'.format(log_path))
+                log_path.open("w").write(e.output)
+
+                # logging.error(e.output)
+                exit(e.returncode)
 
         self._post_process(platform, all_products)
 
