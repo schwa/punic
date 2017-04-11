@@ -3,8 +3,14 @@ from __future__ import division, absolute_import, print_function
 import contextlib
 import logging
 
+from .styling import *
+
 class PunicException(Exception):
-    pass
+    def __init__(self, formatted_message):
+        unformatted_message = styled(formatted_message, style = False)
+        super(PunicException, self).__init__(unformatted_message)
+        self.formatted_message = formatted_message
+
 
 class RepositoryNotClonedError(PunicException):
     pass

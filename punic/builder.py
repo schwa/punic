@@ -18,6 +18,7 @@ import punic.shshutil as shutil
 from .errors import NoSuchRevision
 from .source_provider import *
 from .config import *
+from .utilities import *
 
 class Builder(object):
 
@@ -58,11 +59,19 @@ class Builder(object):
         for platform in platforms:
             for checkout in checkouts:
                 checkout.prepare()
-                for project in checkout.projects:
+
+                projects = checkout.projects
+                if not projects:
+                    raise PunicException("No projects in checkout: <path>{}</path>".format(shorten_path(checkout.checkout_path)))
+
+
+                for project in projects:
                     schemes = project.schemes
 
                     schemes = [scheme for scheme in schemes if scheme.framework_targets]
                     schemes = [scheme for scheme in schemes if platform.device_sdk in scheme.supported_platform_names]
+                    if not schemes:
+                        logging.warning('<err>Warning:</err> No schemes found in project: {}'.format(project))
                     for scheme in schemes:
                         if not filter_dependency(platform, checkout, project, scheme):
                             logging.warn('<err>Warning:</err> <sub>Skipping</sub>: {} / {} / {} / {}'.format(platform, checkout.identifier.project_name, project.path.name, scheme.name))
