@@ -1,5 +1,10 @@
 # Version History
 
+## 0.2.10
+
+* Delete incorrect statement about branches from readme.
+* Fixes #67 - changed the way Xcode versions were stored.
+
 ## 0.2.9
 
 * Updated README to include info on installing punic by homebrew
@@ -97,7 +102,7 @@
 
 * Import bug fixes.
 * Most importantly fixes problems with projects such as ReactiveCocoa. See https://github.com/schwa/punic/commit/75b7372c4926f1b6911a5e0e540d1311acda33e3 for more information.
-* Fixes problem with `--platform` switch. 
+* Fixes problem with `--platform` switch.
 
 ## 0.1.15
 
