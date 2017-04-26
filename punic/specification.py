@@ -85,6 +85,12 @@ class ProjectIdentifier(object):
         'foo/bar'
         >>> ProjectIdentifier.string('github "foo/bar"').full_identifier
         'github "foo/bar"'
+        >>> ProjectIdentifier.string('github "https://github.enterprise.com/foo/bar"').team_name
+        'foo'
+        >>> ProjectIdentifier.string('github "https://github.enterprise.com/foo/bar"').project_name
+        'bar'
+        >>> ProjectIdentifier.string('github "https://github.enterprise.com/foo/bar.git"').project_name
+        'bar'
         >>> ProjectIdentifier.string('git "file:///Users/example/Projects/Example-Project"')
         Example-Project
         >>> ProjectIdentifier.string('git "git@gitlab.com:mokagio/punic-cartfile-issue.git"')
@@ -102,16 +108,18 @@ class ProjectIdentifier(object):
         link = match.group('link')
 
         if source == 'github':
-            match = re.match(r'^(?P<team_name>[^/]+)/(?P<project_name>[^/]+)$', link)
+            match = re.match(r'(?P<remote_url>(?:.*?)(?:/|:))*(?P<team_name>[^/]+)/(?P<project_name>[^/]+)$', link)
             if not match:
                 raise Exception('No match')
             team_name = match.group('team_name')
             project_name = match.group('project_name')
+            remote_url = match.group('remote_url') or 'github.com/'
 
-            if not use_ssh:
-                remote_url = 'https://github.com/{}/{}.git'.format(team_name, project_name)
-            else:
-                remote_url = 'git@github.com:{}/{}.git'.format(team_name, project_name)
+            match = re.match(r'.+\.git$', link)
+            suffix = '' if match else '.git'
+
+            scheme = 'git@' if use_ssh else 'https://'
+            remote_url = '{}{}{}/{}{}'.format(scheme, remote_url, team_name, project_name, suffix)
         elif source == 'git':
             team_name = None
             url_parts = urlparse.urlparse(link)
