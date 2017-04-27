@@ -117,10 +117,10 @@ class Punic(object):
                     return False
             return True
 
-        for platform in platforms:
-            for checkout in checkouts:
-                checkout.prepare()
-                for project in checkout.projects:
+        for checkout in checkouts:
+            checkout.prepare()
+            for project in checkout.projects:
+                for platform in platforms:
                     schemes = project.schemes
 
                     schemes = [scheme for scheme in schemes if scheme.framework_targets]
