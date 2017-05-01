@@ -73,7 +73,10 @@ class Checkout(object):
 
             carthage_symlink_path = carthage_path / 'Build'
             if carthage_symlink_path.exists():
-                carthage_symlink_path.unlink()
+                if carthage_symlink_path.is_dir():
+                    shutil.rmtree(str(carthage_symlink_path))
+                else:
+                    carthage_symlink_path.unlink()
             logging.debug('<sub>Creating symlink: <ref>{}</ref> to <ref>{}</ref></sub>'.format(carthage_symlink_path.relative_to(self.config.root_path), self.config.build_path.relative_to(self.config.root_path)))
             assert self.config.build_path.exists()
 
