@@ -1,4 +1,4 @@
 defaults:
   configuration: Debug
   platform: Mac
-  xcode-version: 8.3
+  xcode-version: 8.3.2
