@@ -2,16 +2,7 @@
 
 ## IMPORTANT
 
-Due to work restrictions I can no longer contribute or maintain this project. I'd be happy to pass over ownership onto any interested party who is willing to maintain it. Please let me know: [schwa@schwa.com](schwa@schwa.com)
-
-
-
-
-
-
-
-
-
+Due to work restrictions I can no longer contribute or maintain this project. I'd be happy to pass over ownership onto any interested party who is willing to maintain it. Please let me know: [schwa@schwa.com](mailto:schwa@schwa.com)
 
 ---
 
